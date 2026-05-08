@@ -63,6 +63,26 @@ CRITICAL = 2
 
 VERSION ='1.5'
 
+class _KeyboardMouseFilter(QtCore.QObject):
+    def __init__(self, handler):
+        super().__init__()
+        self._h = handler
+
+    def eventFilter(self, receiver, event):
+        if event.type() == QtCore.QEvent.MouseButtonPress:
+            if not isinstance(event, QtGui.QMouseEvent):
+                return super().eventFilter(receiver, event)
+            w = self._h.w
+            if w.stackedWidget_dro.currentIndex() == 1:
+                is_text_input = isinstance(receiver, (QtWidgets.QLineEdit, QtWidgets.QTableView))
+                if not is_text_input:
+                    dro = w.stackedWidget_dro
+                    kb_rect = QtCore.QRect(dro.mapToGlobal(QtCore.QPoint(0, 0)), dro.size())
+                    if not kb_rect.contains(event.globalPos()):
+                        w.stackedWidget_dro.setCurrentIndex(0)
+        return super().eventFilter(receiver, event)
+
+
 class HandlerClass:
     def __init__(self, halcomp, widgets, paths):
         self.h = halcomp
@@ -176,6 +196,8 @@ class HandlerClass:
         self.w.btn_dimensions.setChecked(True)
         self.w.page_buttonGroup.buttonClicked.connect(self.main_tab_changed)
         self.w.filemanager_usb.showMediaDir(quiet = True)
+        self._kb_mouse_filter = _KeyboardMouseFilter(self)
+        QtWidgets.QApplication.instance().installEventFilter(self._kb_mouse_filter)
 
     # hide or initiate 4th/5th AXIS dro/jog
         flag = False
@@ -493,14 +515,25 @@ class HandlerClass:
 
     def processed_focus_event__(self, receiver, event):
         if not self.w.chk_use_virtual.isChecked() or STATUS.is_auto_mode(): return
-        if isinstance(receiver, QtWidgets.QLineEdit):
-            if not receiver.isReadOnly():
+        if event.type() == QtCore.QEvent.FocusIn:
+            if isinstance(receiver, QtWidgets.QLineEdit):
+                if not receiver.isReadOnly():
+                    self.w.stackedWidget_dro.setCurrentIndex(1)
+            elif isinstance(receiver, QtWidgets.QTableView):
                 self.w.stackedWidget_dro.setCurrentIndex(1)
-        elif isinstance(receiver, QtWidgets.QTableView):
-            self.w.stackedWidget_dro.setCurrentIndex(1)
-        elif isinstance(receiver, QtWidgets.QCommonStyle):
-            return
-    
+            elif isinstance(receiver, QtWidgets.QCommonStyle):
+                return
+        elif event.type() == QtCore.QEvent.FocusOut:
+            if isinstance(receiver, (QtWidgets.QLineEdit, QtWidgets.QTableView)):
+                QtCore.QTimer.singleShot(0, self._check_hide_keyboard)
+
+    def _check_hide_keyboard(self):
+        if not self.w.chk_use_virtual.isChecked(): return
+        focused = QtWidgets.QApplication.focusWidget()
+        if not isinstance(focused, (QtWidgets.QLineEdit, QtWidgets.QTableView)):
+            self.w.stackedWidget_dro.setCurrentIndex(0)
+
+
     def processed_key_event__(self,receiver,event,is_pressed,key,code,shift,cntrl):
         # when typing in MDI, we don't want keybinding to call functions
         # so we catch and process the events directly.
