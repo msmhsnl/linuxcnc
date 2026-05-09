@@ -80,6 +80,9 @@ class _KeyboardMouseFilter(QtCore.QObject):
                     kb_rect = QtCore.QRect(dro.mapToGlobal(QtCore.QPoint(0, 0)), dro.size())
                     if not kb_rect.contains(event.globalPos()):
                         w.stackedWidget_dro.setCurrentIndex(0)
+                        focused = QtWidgets.QApplication.focusWidget()
+                        if focused is not None:
+                            focused.clearFocus()
         return super().eventFilter(receiver, event)
 
 

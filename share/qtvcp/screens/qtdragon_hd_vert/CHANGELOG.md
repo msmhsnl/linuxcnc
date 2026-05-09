@@ -98,3 +98,61 @@ QtWidgets.QApplication.instance().installEventFilter(self._kb_mouse_filter)
 | Boş alana tıkla → kapat | `_KeyboardMouseFilter` (koordinat) |
 | Klavye butonuna tıkla → açık kal | `_KeyboardMouseFilter` (kb_rect içi) |
 | İki text input arası Tab → açık kal | `_check_hide_keyboard` (focusWidget kontrolü) |
+
+---
+
+## FIX clearFocus for text inputs
+
+### Sorun
+
+Klavye açıkken boş bir alana tıklandığında `_KeyboardMouseFilter` klavyeyi kapatıyordu, ancak text input **fokuslu kalmaya devam ediyordu**. Boş alanlar odaklanamayan widget'lar olduğundan Qt'de fokus değişmez; dolayısıyla `FocusOut` tetiklenmez ve text input fokusunu korur.
+
+Bu durumda:
+1. Text input'a tıkla → klavye açılır
+2. Boş alana tıkla → klavye kapanır, **text input fokuslu kalır**
+3. Aynı text input'a tekrar tıkla → `FocusIn` tetiklenmez (fokus zaten orada), klavye açılmaz
+
+### Kök Neden
+
+Qt'de `FocusIn` yalnızca fokus **değiştiğinde** tetiklenir. Text input zaten fokuslu olduğu için bir sonraki tıklamada `FocusIn` event'i üretilmez ve `processed_focus_event__` hiç çağrılmaz.
+
+### Yapılan Değişiklik
+
+`_KeyboardMouseFilter.eventFilter` içinde, klavye kapatılırken mevcut odaklı widget'ın fokusunun da temizlenmesi sağlandı:
+
+```python
+if not kb_rect.contains(event.globalPos()):
+    w.stackedWidget_dro.setCurrentIndex(0)
+    focused = QtWidgets.QApplication.focusWidget()
+    if focused is not None:
+        focused.clearFocus()
+```
+
+### Çalışma Şekli
+
+Event filter, mouse press event receiver'a teslim edilmeden **önce** çalışır. Bu sırada:
+
+1. `stackedWidget_dro.setCurrentIndex(0)` → klavye kapatılır
+2. `QApplication.focusWidget()` → o an fokuslu widget alınır (text input)
+3. `focused.clearFocus()` → text input'un fokus durumu temizlenir
+4. Mouse press event boş alana teslim edilir → boş alan odaklanamadığından yeni bir fokus oluşmaz
+5. Sonuç: hiçbir widget fokuslu değil
+
+Bir sonraki tıklamada text input yeniden tıklandığında Qt `FocusIn` event'i üretir → `processed_focus_event__` tetiklenir → klavye açılır.
+
+### Güvenlik
+
+`focused is not None` kontrolü, uygulama genelinde hiçbir widget fokuslu olmadığı durumda `clearFocus()` çağrısının atlanmasını sağlar.
+
+### Güncel Kapsam Tablosu
+
+| Senaryo | Mekanizma |
+|---|---|
+| Text input'a tıkla → klavye aç | `processed_focus_event__` FocusIn |
+| Focuslanabilir widget'a tıkla → kapat | `_check_hide_keyboard` (FocusOut) |
+| Tab ile text input dışına çık → kapat | `_check_hide_keyboard` (FocusOut) |
+| Programatik `setFocus()` → kapat | `_check_hide_keyboard` (FocusOut) |
+| Boş alana tıkla → kapat + fokus temizle | `_KeyboardMouseFilter` (koordinat + clearFocus) |
+| Klavye butonuna tıkla → açık kal | `_KeyboardMouseFilter` (kb_rect içi) |
+| İki text input arası Tab → açık kal | `_check_hide_keyboard` (focusWidget kontrolü) |
+| Boş alan sonrası text input'a tekrar tıkla → klavye açılır | clearFocus → FocusIn tetiklenir |
