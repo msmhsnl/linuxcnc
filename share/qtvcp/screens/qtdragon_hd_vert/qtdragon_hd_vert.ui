@@ -10054,6 +10054,154 @@ LINEAR</string>
                      </property>
                     </widget>
                    </item>
+                   <item row="0" column="0">
+                    <widget class="QPushButton" name="axis_select_z">
+                     <property name="minimumSize">
+                      <size>
+                       <width>53</width>
+                       <height>35</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>53</width>
+                       <height>35</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>Z</string>
+                     </property>
+                     <property name="checkable">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="1">
+                    <widget class="QPushButton" name="axis_select_x">
+                     <property name="minimumSize">
+                      <size>
+                       <width>53</width>
+                       <height>35</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>53</width>
+                       <height>35</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>X</string>
+                     </property>
+                     <property name="checkable">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="2">
+                    <widget class="QPushButton" name="axis_select_y">
+                     <property name="minimumSize">
+                      <size>
+                       <width>53</width>
+                       <height>35</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>53</width>
+                       <height>35</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>Y</string>
+                     </property>
+                     <property name="checkable">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="6">
+                    <widget class="QPushButton" name="axis_select_4">
+                     <property name="minimumSize">
+                      <size>
+                       <width>53</width>
+                       <height>35</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>53</width>
+                       <height>35</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>4</string>
+                     </property>
+                     <property name="checkable">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="7">
+                    <widget class="QPushButton" name="axis_select_5">
+                     <property name="minimumSize">
+                      <size>
+                       <width>53</width>
+                       <height>35</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>53</width>
+                       <height>35</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>5</string>
+                     </property>
+                     <property name="checkable">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="0" colspan="4">
+                    <widget class="ActionButton" name="jog_plus_button">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>40</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>JOG +</string>
+                     </property>
+                     <property name="jog_selected_pos_action" stdset="0">
+                      <bool>true</bool>
+                     </property>
+                     <property name="joint_number" stdset="0">
+                      <number>-1</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="0" colspan="4">
+                    <widget class="ActionButton" name="jog_minus_button">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>40</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>JOG -</string>
+                     </property>
+                     <property name="jog_selected_neg_action" stdset="0">
+                      <bool>true</bool>
+                     </property>
+                     <property name="joint_number" stdset="0">
+                      <number>-1</number>
+                     </property>
+                    </widget>
+                   </item>
                   </layout>
                  </widget>
                 </item>

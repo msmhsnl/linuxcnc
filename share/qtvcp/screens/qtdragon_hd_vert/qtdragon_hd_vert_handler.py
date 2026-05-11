@@ -131,10 +131,10 @@ class HandlerClass:
         self.onoff_list = ["frame_program", "frame_tool", "frame_offsets", "frame_dro", "frame_override"]
         self.axis_4_list = ["label_axis_4", "dro_axis_4", "action_zero_4", "axistoolbutton_4",
                             "dro_button_stack_4",  "plus_jogbutton_4", "minus_jogbutton_4",
-                            "widget_home_4"]
+                            "widget_home_4", "axis_select_4"]
         self.axis_5_list = ["label_axis_5", "dro_axis_5", "action_zero_5", "axistoolbutton_5",
                             "dro_button_stack_5","plus_jogbutton_5", "minus_jogbutton_5",
-                            "widget_home_5"]
+                            "widget_home_5", "axis_select_5"]
         self.statusbar_reset_time = 10000 # ten seconds
 
         STATUS.connect('general', self.dialog_return)
@@ -202,6 +202,18 @@ class HandlerClass:
         self._kb_mouse_filter = _KeyboardMouseFilter(self)
         QtWidgets.QApplication.instance().installEventFilter(self._kb_mouse_filter)
 
+    # axis select button group for generic JOG+/JOG- buttons
+        self._axis_select_group = QtWidgets.QButtonGroup()
+        self._axis_select_group.setExclusive(True)
+        self._axis_select_group.addButton(self.w.axis_select_x)
+        self._axis_select_group.addButton(self.w.axis_select_y)
+        self._axis_select_group.addButton(self.w.axis_select_z)
+        self.w.axis_select_x.clicked.connect(lambda: self.set_active_axis('X'))
+        self.w.axis_select_y.clicked.connect(lambda: self.set_active_axis('Y'))
+        self.w.axis_select_z.clicked.connect(lambda: self.set_active_axis('Z'))
+        self.w.axis_select_x.setChecked(True)
+        self.set_active_axis('X')
+        STATUS.connect('state-on', lambda w: self._reapply_axis_select())
     # hide or initiate 4th/5th AXIS dro/jog
         flag = False
         flag4 = True
@@ -1609,6 +1621,10 @@ class HandlerClass:
     def initiate_axis_dro(self, num, axis):
         self.w['label_axis_{}'.format(num)].setText(axis)
         self.w['label_home_{}'.format(num)].setText('HOME {}'.format(axis))
+        self.w['axis_select_{}'.format(num)].setText(axis)
+        self._axis_select_group.addButton(self.w['axis_select_{}'.format(num)])
+        self.w['axis_select_{}'.format(num)].clicked.connect(
+            lambda checked, a=axis: self.set_active_axis(a))
         jnum = INFO.GET_JOG_FROM_NAME.get(axis)
         # DRO uses axis index
         index = "XYZABCUVW".index(axis)
@@ -1638,6 +1654,26 @@ class HandlerClass:
             self.w['minus_jogbutton_{}'.format(num)].setIcon(icn)
         except Exception as e:
             self.w['minus_jogbutton_{}'.format(num)].setProperty('text','{}-'.format(axis))
+
+    def set_active_axis(self, axis):
+        ACTION.SET_SELECTED_AXIS(axis)
+        jnum = INFO.GET_JOG_FROM_NAME.get(axis, -1)
+        if isinstance(jnum, int) and jnum >= 0:
+            ACTION.SET_SELECTED_JOINT(jnum)
+
+    def _reapply_axis_select(self):
+        static = [(self.w.axis_select_x, 'X'),
+                  (self.w.axis_select_y, 'Y'),
+                  (self.w.axis_select_z, 'Z')]
+        for btn, axis in static:
+            if btn.isChecked():
+                self.set_active_axis(axis)
+                return
+        for num in (4, 5):
+            btn = self.w['axis_select_{}'.format(num)]
+            if btn.isVisible() and btn.isChecked():
+                self.set_active_axis(btn.text())
+                return
 
     #####################
     # KEY BINDING CALLS #
