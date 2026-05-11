@@ -130,11 +130,9 @@ class HandlerClass:
                               "search_vel", "probe_vel", "max_probe", "eoffset_count"]
         self.onoff_list = ["frame_program", "frame_tool", "frame_offsets", "frame_dro", "frame_override"]
         self.axis_4_list = ["label_axis_4", "dro_axis_4", "action_zero_4", "axistoolbutton_4",
-                            "dro_button_stack_4",  "plus_jogbutton_4", "minus_jogbutton_4",
-                            "widget_home_4", "axis_select_4"]
+                            "dro_button_stack_4", "widget_home_4", "axis_select_4"]
         self.axis_5_list = ["label_axis_5", "dro_axis_5", "action_zero_5", "axistoolbutton_5",
-                            "dro_button_stack_5","plus_jogbutton_5", "minus_jogbutton_5",
-                            "widget_home_5", "axis_select_5"]
+                            "dro_button_stack_5", "widget_home_5", "axis_select_5"]
         self.statusbar_reset_time = 10000 # ten seconds
 
         STATUS.connect('general', self.dialog_return)
@@ -1636,24 +1634,7 @@ class HandlerClass:
         self.w['btn_home_{}'.format(num)].setProperty('joint_number_status',jnum)
         self.w['btn_home_{}'.format(num)].setProperty('joint',index)
         self.w['offsettoolbutton_{}'.format(num)].setProperty('axis_letter',axis)
-        self.w['plus_jogbutton_{}'.format(num)].setProperty('axis_letter',axis)
-        self.w['plus_jogbutton_{}'.format(num)].setProperty('joint_number',jnum)
         self.w['hal_led_home_{}'.format(num)].setProperty('joint_number_status',jnum)
-        a = axis.lower()
-        try:
-            icn = QtGui.QIcon(QtGui.QPixmap(':/buttons/images/{}_plus_jog_button.png'.format(a)))
-            if icn.isNull(): raise Exception
-            self.w['plus_jogbutton_{}'.format(num)].setIcon(icn)
-        except Exception as e:
-            self.w['plus_jogbutton_{}'.format(num)].setProperty('text','{}+'.format(axis))
-        self.w['minus_jogbutton_{}'.format(num)].setProperty('axis_letter',axis)
-        self.w['minus_jogbutton_{}'.format(num)].setProperty('joint_number',jnum)
-        try:
-            icn = QtGui.QIcon(QtGui.QPixmap(':/buttons/images/{}_minus_jog_button.png'.format(a)))
-            if icn.isNull(): raise Exception
-            self.w['minus_jogbutton_{}'.format(num)].setIcon(icn)
-        except Exception as e:
-            self.w['minus_jogbutton_{}'.format(num)].setProperty('text','{}-'.format(axis))
 
     def set_active_axis(self, axis):
         ACTION.SET_SELECTED_AXIS(axis)
