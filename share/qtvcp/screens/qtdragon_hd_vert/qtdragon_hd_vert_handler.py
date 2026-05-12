@@ -134,6 +134,8 @@ class HandlerClass:
         self.axis_5_list = ["label_axis_5", "dro_axis_5", "action_zero_5", "axistoolbutton_5",
                             "dro_button_stack_5", "widget_home_5", "axis_select_5"]
         self.statusbar_reset_time = 10000 # ten seconds
+        self._current_axis = 'X'
+        self._mpg_axis_next_prev = True  # NC button: normal state is HIGH
 
         STATUS.connect('general', self.dialog_return)
         STATUS.connect('state-on', lambda w: self.enable_onoff(True))
@@ -324,6 +326,9 @@ class HandlerClass:
             jnum = INFO.GET_JOG_FROM_NAME.get(axis, -1)
             if jnum >= 0:
                 QHAL.newpin('jog-joint-{}-enable'.format(jnum), QHAL.HAL_BIT, QHAL.HAL_OUT)
+
+        # MPG axis cycle button input (NC: normally HIGH, LOW when pressed)
+        QHAL.newpin('mpg-axis-next', QHAL.HAL_BIT, QHAL.HAL_IN)
 
     def init_preferences(self):
         if not self.w.PREFS_:
@@ -1382,7 +1387,32 @@ class HandlerClass:
         except Exception as e:
             self.add_status("Unable to copy file. %s" %e, WARNING)
 
+    def _cycle_mpg_axis(self):
+        # Axis cycle order follows INFO.AVAILABLE_AXES (same pattern as jog enable pins)
+        axes = [ax for ax in INFO.AVAILABLE_AXES]
+        current = self._current_axis
+        if current not in axes:
+            current = axes[0]
+        next_axis = axes[(axes.index(current) + 1) % len(axes)]
+        # Update button state - mirrors _reapply_axis_select pattern
+        static_map = {'X': self.w.axis_select_x, 'Y': self.w.axis_select_y, 'Z': self.w.axis_select_z}
+        btn = static_map.get(next_axis)
+        if btn is None:
+            for b in self._axis_select_group.buttons():
+                if b.text() == next_axis:
+                    btn = b
+                    break
+        if btn:
+            btn.setChecked(True)
+        self.set_active_axis(next_axis)
+
     def periodic_update(self):
+        # MPG axis next button - falling edge detection (NC: HIGH=normal, LOW=pressed)
+        val = self.h['mpg-axis-next']
+        if not val and self._mpg_axis_next_prev:
+            self._cycle_mpg_axis()
+        self._mpg_axis_next_prev = val
+
         # if waiting and up to speed, lower spindle
         if self._spindle_wait:
             if bool(self.h.hal.get_value('spindle.0.at-speed')):
@@ -1647,6 +1677,7 @@ class HandlerClass:
         jnum = INFO.GET_JOG_FROM_NAME.get(axis, -1)
         if isinstance(jnum, int) and jnum >= 0:
             ACTION.SET_SELECTED_JOINT(jnum)
+        self._current_axis = axis
         selected_jnum = INFO.GET_JOG_FROM_NAME.get(axis, -1)
         for ax in INFO.AVAILABLE_AXES:
             jnum = INFO.GET_JOG_FROM_NAME.get(ax, -1)

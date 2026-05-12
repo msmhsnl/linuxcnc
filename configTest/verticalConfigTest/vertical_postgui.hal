@@ -16,6 +16,9 @@ setp z_level_compensation.method 1
 # connect signals
 ########################################################################
 
+# MPG Axis Cycle Button (remora.input.01 -> NC button, falling edge = press)
+net input-1-pe6  =>  qtdragon.mpg-axis-next
+
 # MPG Axis Jog Enable (qtdragon handler, joint-number indexed)
 # Pin count matches AVAILABLE_AXES in INI - add lines here when new joints are added
 net mpg-joint-0  qtdragon.jog-joint-0-enable  =>  joint.0.jog-enable  axis.x.jog-enable
