@@ -1,0 +1,189 @@
+# ============================================================================
+# Custom PostGUI HAL Configuration
+# This file is loaded after the GUI is started
+# ============================================================================
+
+# ============================================================================
+# HALT BUTTON (Controls GPIO 25 -> STM32 Reset Pin PE_2)
+# ============================================================================
+# PyVCP button sends signal to remora.PRU-reset
+# When pressed: GPIO 25 goes HIGH -> STM32 reads PE_2 -> MCU restarts
+
+net pru-reset-signal <= pyvcp.pru-reset-btn => remora.PRU-reset
+
+# ============================================================================
+# MPG AXIS SELECTION
+# ============================================================================
+# AXIS GUI keyboard shortcuts (X/Y/Z keys) update these pins
+
+net mpg-x-enable <= axisui.jog.x
+net mpg-y-enable <= axisui.jog.y
+net mpg-z-enable <= axisui.jog.z
+net mpg-a-enable <= axisui.jog.a
+net mpg-b-enable <= axisui.jog.b
+net mpg-c-enable <= axisui.jog.c
+net mpg-u-enable <= axisui.jog.u
+net mpg-v-enable <= axisui.jog.v
+
+
+# ============================================================================
+# PYVCP SPINDLE STATUS (Read Only)
+# ============================================================================
+
+net spindle-forward => pyvcp.spindle-fwd-led
+net spindle-reverse => pyvcp.spindle-rev-led
+
+
+# ============================================================================
+# PYVCP COOLANT STATUS (Read Only)
+# ============================================================================
+
+net flood => pyvcp.flood-led
+net mist  => pyvcp.mist-led
+
+
+# ============================================================================
+# PYVCP AUXILIARY OUTPUTS (User Controlled via checkboxes)
+# ============================================================================
+# config.txt Output Pin Mappings (NEW):
+# Bit 00 - PA_8  - OUTPUT_0 | Bit 01 - PD_14 - OUTPUT_1 | Bit 02 - PD_15 - OUTPUT_2
+# Bit 03 - PD_12 - OUTPUT_3 | Bit 04 - PD_13 - OUTPUT_4 | Bit 05 - PD_10 - OUTPUT_5
+# Bit 06 - PB_12 - OUTPUT_6 | Bit 07 - PB_13 - OUTPUT_7 | Bit 08 - PE_9  - OUTPUT_8
+# Bit 09 - PE_8  - OUTPUT_9 | Bit 10 - PE_10 - OUTPUT_10| Bit 11 - PB_11 - OUTPUT_11
+# Bit 12 - PB_10 - OUTPUT_12| Bit 13 - PE_14 - SPINDLE_FWD | Bit 14 - PE_15 - SPINDLE_REV
+
+# OUTPUT_0 - PA_8
+net output-0-pa8 <= pyvcp.aux-out-00
+net output-0-pa8 => pyvcp.aux-led-00
+
+# OUTPUT_1 - PD_14
+net output-1-pd14 <= pyvcp.aux-out-01
+net output-1-pd14 => pyvcp.aux-led-01
+
+# OUTPUT_2 - PD_15
+net output-2-pd15 <= pyvcp.aux-out-02
+net output-2-pd15 => pyvcp.aux-led-02
+
+# OUTPUT_3 - PD_12
+net output-3-pd12 <= pyvcp.aux-out-03
+net output-3-pd12 => pyvcp.aux-led-03
+
+# OUTPUT_4 - PD_13
+net output-4-pd13 <= pyvcp.aux-out-04
+net output-4-pd13 => pyvcp.aux-led-04
+
+# OUTPUT_5 - PD_10
+net output-5-pd10 <= pyvcp.aux-out-05
+net output-5-pd10 => pyvcp.aux-led-05
+
+# OUTPUT_6 - PB_12
+net output-6-pb12 <= pyvcp.aux-out-06
+net output-6-pb12 => pyvcp.aux-led-06
+
+# OUTPUT_7 - PB_13
+net output-7-pb13 <= pyvcp.aux-out-07
+net output-7-pb13 => pyvcp.aux-led-07
+
+# OUTPUT_8 - PE_9
+net output-8-pe9 <= pyvcp.aux-out-08
+net output-8-pe9 => pyvcp.aux-led-08
+
+# OUTPUT_9 - PE_8
+net output-9-pe8 <= pyvcp.aux-out-09
+net output-9-pe8 => pyvcp.aux-led-09
+
+# OUTPUT_10 - PE_10
+net output-10-pe10 <= pyvcp.aux-out-10
+net output-10-pe10 => pyvcp.aux-led-10
+
+# OUTPUT_11 - PB_11
+net output-11-pb11 <= pyvcp.aux-out-11
+net output-11-pb11 => pyvcp.aux-led-11
+
+# OUTPUT_12 - PB_10
+net output-12-pb10 <= pyvcp.aux-out-12
+net output-12-pb10 => pyvcp.aux-led-12
+
+
+# ============================================================================
+# PYVCP TEMPERATURE SENSOR DISPLAYS
+# ============================================================================
+
+net temperature-sensor-1 => pyvcp.temp1-bar
+net temperature-sensor-2 => pyvcp.temp2-bar
+net temperature-sensor-3 => pyvcp.temp3-bar
+
+
+# ============================================================================
+# PYVCP SPINDLE SPEED DISPLAY
+# ============================================================================
+
+net spindle-speed-cmd => pyvcp.spindle-speed-bar
+
+
+# ============================================================================
+# PYVCP PWM CONTROL SLIDERS
+# ============================================================================
+# SP[3]: PWM_0 (PB_14)
+# SP[5]: PWM_1 (PB_15)
+# Note: PyVCP scale widget creates pins with "-f" suffix for float values
+
+net pwm-0-pb14 <= pyvcp.pwm-0-slider-f
+net pwm-1-pb15 <= pyvcp.pwm-1-slider-f
+
+
+# ============================================================================
+# PYVCP DIGITAL INPUT LED INDICATORS
+# ============================================================================
+# config.txt Input Pin Mappings (NEW):
+# RESET_PIN - PA_3  - Reset Pin (not digital input)
+# Bit 00 - PE_4  - INPUT_0  | Bit 01 - PE_6  - INPUT_1  | Bit 02 - PC_13 - INPUT_2
+# Bit 03 - PC_0  - INPUT_3  | Bit 04 - PC_1  - INPUT_4  | Bit 05 - PC_2  - INPUT_5
+# Bit 06 - PC_3  - INPUT_6  | Bit 07 - PC_4  - INPUT_7  | Bit 08 - PC_5  - INPUT_8
+# Bit 09 - PB_0  - INPUT_9  | Bit 10 - PB_1  - INPUT_10 | Bit 11 - PB_2  - INPUT_11
+# Bit 12 - PE_7  - INPUT_12 | Bit 13 - PE_2  - HALT     | Bit 14 - (QEI Index - PA_2)
+
+# INPUT_0 - PE_4
+net input-0-pe4 => pyvcp.input-led-00
+
+# INPUT_1 - PE_6
+net input-1-pe6 => pyvcp.input-led-01
+
+# INPUT_2 - PC_13
+net input-2-pc13 => pyvcp.input-led-02
+
+# INPUT_3 - PC_0
+net input-3-pc0 => pyvcp.input-led-03
+
+# INPUT_4 - PC_1
+net input-4-pc1 => pyvcp.input-led-04
+
+# INPUT_5 - PC_2
+net input-5-pc2 => pyvcp.input-led-05
+
+# INPUT_6 - PC_3
+net input-6-pc3 => pyvcp.input-led-06
+
+# INPUT_7 - PC_4
+net input-7-pc4 => pyvcp.input-led-07
+
+# INPUT_8 - PC_5
+net input-8-pc5 => pyvcp.input-led-08
+
+# INPUT_9 - PB_0
+net input-9-pb0 => pyvcp.input-led-09
+
+# INPUT_10 - PB_1
+net input-10-pb1 => pyvcp.input-led-10
+
+# INPUT_11 - PB_2
+net input-11-pb2 => pyvcp.input-led-11
+
+# INPUT_12 - PE_7
+net input-12-pe7 => pyvcp.input-led-12
+
+# HALT - PE_2
+net input-halt-pe2 => pyvcp.input-led-13
+
+# QEI Index - Bit 14 (PA_2)
+net spindle-index => pyvcp.input-led-14

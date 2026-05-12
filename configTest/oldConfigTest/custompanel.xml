@@ -1,0 +1,613 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    PyVCP Control Panel for Remora CNC Controller
+    Based on config.txt pin mappings
+    
+    ========== OUTPUT PIN MAPPING (from config.txt) ==========
+    Bit 00 - PA_8  - OUTPUT_0 (General Purpose)
+    Bit 01 - PD_14 - OUTPUT_1 (General Purpose)
+    Bit 02 - PD_15 - OUTPUT_2 (General Purpose)
+    Bit 03 - PD_12 - OUTPUT_3 (General Purpose)
+    Bit 04 - PD_13 - OUTPUT_4 (General Purpose)
+    Bit 05 - PD_10 - OUTPUT_5 (General Purpose)
+    Bit 06 - PB_12 - OUTPUT_6 (General Purpose)
+    Bit 07 - PB_13 - OUTPUT_7 (General Purpose)
+    Bit 08 - PE_9  - OUTPUT_8 (General Purpose)
+    Bit 09 - PE_8  - OUTPUT_9 (General Purpose)
+    Bit 10 - PE_10 - OUTPUT_10 (General Purpose)
+    Bit 11 - PB_11 - OUTPUT_11 (General Purpose)
+    Bit 12 - PB_10 - OUTPUT_12 (General Purpose)
+    
+    ========== INPUT PIN MAPPING (from config.txt) ==========
+    RESET_PIN - PA_3  - Reset Pin (PRU Reset - not digital input)
+    Bit 00 - PE_4  - INPUT_0 (General Input)
+    Bit 01 - PE_6  - INPUT_1 (General Input)
+    Bit 02 - PC_13 - INPUT_2 (General Input)
+    Bit 03 - PC_0  - INPUT_3 (General Input)
+    Bit 04 - PC_1  - INPUT_4 (General Input)
+    Bit 05 - PC_2  - INPUT_5 (General Input)
+    Bit 06 - PC_3  - INPUT_6 (General Input)
+    Bit 07 - PC_4  - INPUT_7 (General Input)
+    Bit 08 - PC_5  - INPUT_8 (General Input)
+    Bit 09 - PB_0  - INPUT_9 (General Input)
+    Bit 10 - PB_1  - INPUT_10 (General Input)
+    Bit 11 - PB_2  - INPUT_11 (General Input)
+    Bit 12 - PE_7  - INPUT_12 (General Input)
+    Bit 13 - PE_2  - HALT (General Input)
+    Bit 14 - PA_2  - QEI Index (reserved for encoder)
+    
+    ========== PWM OUTPUTS (from config.txt) ==========
+    SP[0] - Spindle PWM
+    SP[3] - PWM_0 (PB_14)
+    SP[5] - PWM_1 (PB_15)
+    
+    ========== PROCESS VARIABLES (from config.txt) ==========
+    PV[0] - Temperature Sensor 1
+    PV[1] - Temperature Sensor 2
+    PV[2] - QEI Encoder Count
+    PV[3] - Temperature Sensor 3
+    PV[4] - MPG Encoder Count
+-->
+
+<pyvcp>
+    <!-- ================================================================ -->
+    <!-- HALT (PRU RESET) CONTROL -->
+    <!-- ================================================================ -->
+    <labelframe text="MCU Control">
+        <font>("Helvetica", 12, "bold")</font>
+        <relief>RAISED</relief>
+        <bd>3</bd>
+        
+        <hbox>
+            <label><text>"STM32 HALT:"</text><width>12</width></label>
+            <button>
+                <halpin>"pru-reset-btn"</halpin>
+                <text>"HALT MCU"</text>
+                <font>("Helvetica", 10, "bold")</font>
+                <bg>"red"</bg>
+                <fg>"white"</fg>
+                <activebackground>"dark red"</activebackground>
+                <width>12</width>
+            </button>
+            <label><text>" (PE_2 → GPIO 25)"</text><font>("Helvetica", 8)</font></label>
+        </hbox>
+    </labelframe>
+
+    <!-- ================================================================ -->
+    <!-- SPINDLE & COOLANT STATUS (Read Only) -->
+    <!-- ================================================================ -->
+    <labelframe text="Spindle &amp; Coolant Status">
+        <font>("Helvetica", 12, "bold")</font>
+        <relief>RAISED</relief>
+        <bd>3</bd>
+        
+        <hbox>
+            <vbox>
+                <label>
+                    <text>"─── Spindle ───"</text>
+                    <font>("Helvetica", 10, "bold")</font>
+                </label>
+                
+                <hbox>
+                    <label><text>"Forward:"</text><width>14</width></label>
+                    <led>
+                        <halpin>"spindle-fwd-led"</halpin>
+                        <size>20</size>
+                        <on_color>"green"</on_color>
+                        <off_color>"dark green"</off_color>
+                    </led>
+                </hbox>
+                
+                <hbox>
+                    <label><text>"Reverse:"</text><width>14</width></label>
+                    <led>
+                        <halpin>"spindle-rev-led"</halpin>
+                        <size>20</size>
+                        <on_color>"yellow"</on_color>
+                        <off_color>"dark red"</off_color>
+                    </led>
+                </hbox>
+            </vbox>
+            
+            <vbox>
+                <label>
+                    <text>"─── Coolant ───"</text>
+                    <font>("Helvetica", 10, "bold")</font>
+                </label>
+                
+                <hbox>
+                    <label><text>"Flood:"</text><width>14</width></label>
+                    <led>
+                        <halpin>"flood-led"</halpin>
+                        <size>20</size>
+                        <on_color>"blue"</on_color>
+                        <off_color>"dark blue"</off_color>
+                    </led>
+                </hbox>
+                
+                <hbox>
+                    <label><text>"Mist:"</text><width>14</width></label>
+                    <led>
+                        <halpin>"mist-led"</halpin>
+                        <size>20</size>
+                        <on_color>"cyan"</on_color>
+                        <off_color>"dark cyan"</off_color>
+                    </led>
+                </hbox>
+            </vbox>
+        </hbox>
+    </labelframe>
+    
+    <!-- ================================================================ -->
+    <!-- DIGITAL OUTPUTS (User Controlled) -->
+    <!-- ================================================================ -->
+    <labelframe text="Digital Outputs (User Controlled)">
+        <font>("Helvetica", 12, "bold")</font>
+        <relief>RAISED</relief>
+        <bd>3</bd>
+        
+        <hbox>
+            <vbox>
+                <!-- OUTPUT_0 - PA_8 -->
+                <hbox>
+                    <label><text>"OUTPUT_0 (PA8):"</text><width>16</width></label>
+                    <checkbutton>
+                        <halpin>"aux-out-00"</halpin>
+                        <text>"ON/OFF"</text>
+                    </checkbutton>
+                    <led>
+                        <halpin>"aux-led-00"</halpin>
+                        <size>18</size>
+                        <on_color>"lime"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                
+                <!-- OUTPUT_1 - PD_14 -->
+                <hbox>
+                    <label><text>"OUTPUT_1 (PD14):"</text><width>16</width></label>
+                    <checkbutton>
+                        <halpin>"aux-out-01"</halpin>
+                        <text>"ON/OFF"</text>
+                    </checkbutton>
+                    <led>
+                        <halpin>"aux-led-01"</halpin>
+                        <size>18</size>
+                        <on_color>"lime"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                
+                <!-- OUTPUT_2 - PD_15 -->
+                <hbox>
+                    <label><text>"OUTPUT_2 (PD15):"</text><width>16</width></label>
+                    <checkbutton>
+                        <halpin>"aux-out-02"</halpin>
+                        <text>"ON/OFF"</text>
+                    </checkbutton>
+                    <led>
+                        <halpin>"aux-led-02"</halpin>
+                        <size>18</size>
+                        <on_color>"lime"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                
+                <!-- OUTPUT_3 - PD_12 -->
+                <hbox>
+                    <label><text>"OUTPUT_3 (PD12):"</text><width>16</width></label>
+                    <checkbutton>
+                        <halpin>"aux-out-03"</halpin>
+                        <text>"ON/OFF"</text>
+                    </checkbutton>
+                    <led>
+                        <halpin>"aux-led-03"</halpin>
+                        <size>18</size>
+                        <on_color>"lime"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                
+                <!-- OUTPUT_4 - PD_13 -->
+                <hbox>
+                    <label><text>"OUTPUT_4 (PD13):"</text><width>16</width></label>
+                    <checkbutton>
+                        <halpin>"aux-out-04"</halpin>
+                        <text>"ON/OFF"</text>
+                    </checkbutton>
+                    <led>
+                        <halpin>"aux-led-04"</halpin>
+                        <size>18</size>
+                        <on_color>"lime"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                
+                <!-- OUTPUT_5 - PD_10 -->
+                <hbox>
+                    <label><text>"OUTPUT_5 (PD10):"</text><width>16</width></label>
+                    <checkbutton>
+                        <halpin>"aux-out-05"</halpin>
+                        <text>"ON/OFF"</text>
+                    </checkbutton>
+                    <led>
+                        <halpin>"aux-led-05"</halpin>
+                        <size>18</size>
+                        <on_color>"lime"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                
+                <!-- OUTPUT_6 - PB_12 -->
+                <hbox>
+                    <label><text>"OUTPUT_6 (PB12):"</text><width>16</width></label>
+                    <checkbutton>
+                        <halpin>"aux-out-06"</halpin>
+                        <text>"ON/OFF"</text>
+                    </checkbutton>
+                    <led>
+                        <halpin>"aux-led-06"</halpin>
+                        <size>18</size>
+                        <on_color>"lime"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+            </vbox>
+            
+            <vbox>
+                <!-- OUTPUT_7 - PB_13 -->
+                <hbox>
+                    <label><text>"OUTPUT_7 (PB13):"</text><width>16</width></label>
+                    <checkbutton>
+                        <halpin>"aux-out-07"</halpin>
+                        <text>"ON/OFF"</text>
+                    </checkbutton>
+                    <led>
+                        <halpin>"aux-led-07"</halpin>
+                        <size>18</size>
+                        <on_color>"lime"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                
+                <!-- OUTPUT_8 - PE_9 -->
+                <hbox>
+                    <label><text>"OUTPUT_8 (PE9):"</text><width>16</width></label>
+                    <checkbutton>
+                        <halpin>"aux-out-08"</halpin>
+                        <text>"ON/OFF"</text>
+                    </checkbutton>
+                    <led>
+                        <halpin>"aux-led-08"</halpin>
+                        <size>18</size>
+                        <on_color>"lime"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                
+                <!-- OUTPUT_9 - PE_8 -->
+                <hbox>
+                    <label><text>"OUTPUT_9 (PE8):"</text><width>16</width></label>
+                    <checkbutton>
+                        <halpin>"aux-out-09"</halpin>
+                        <text>"ON/OFF"</text>
+                    </checkbutton>
+                    <led>
+                        <halpin>"aux-led-09"</halpin>
+                        <size>18</size>
+                        <on_color>"lime"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                
+                <!-- OUTPUT_10 - PE_10 -->
+                <hbox>
+                    <label><text>"OUTPUT_10 (PE10):"</text><width>16</width></label>
+                    <checkbutton>
+                        <halpin>"aux-out-10"</halpin>
+                        <text>"ON/OFF"</text>
+                    </checkbutton>
+                    <led>
+                        <halpin>"aux-led-10"</halpin>
+                        <size>18</size>
+                        <on_color>"lime"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                
+                <!-- OUTPUT_11 - PB_11 -->
+                <hbox>
+                    <label><text>"OUTPUT_11 (PB11):"</text><width>16</width></label>
+                    <checkbutton>
+                        <halpin>"aux-out-11"</halpin>
+                        <text>"ON/OFF"</text>
+                    </checkbutton>
+                    <led>
+                        <halpin>"aux-led-11"</halpin>
+                        <size>18</size>
+                        <on_color>"lime"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                
+                <!-- OUTPUT_12 - PB_10 -->
+                <hbox>
+                    <label><text>"OUTPUT_12 (PB10):"</text><width>16</width></label>
+                    <checkbutton>
+                        <halpin>"aux-out-12"</halpin>
+                        <text>"ON/OFF"</text>
+                    </checkbutton>
+                    <led>
+                        <halpin>"aux-led-12"</halpin>
+                        <size>18</size>
+                        <on_color>"lime"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+            </vbox>
+        </hbox>
+    </labelframe>
+    
+    <!-- ================================================================ -->
+    <!-- DIGITAL INPUTS DISPLAY -->
+    <!-- ================================================================ -->
+    <labelframe text="Digital Inputs">
+        <font>("Helvetica", 12, "bold")</font>
+        <relief>RAISED</relief>
+        <bd>3</bd>
+        
+        <hbox>
+            <!-- Column 1: INPUT_0 to INPUT_4 -->
+            <vbox>
+                <hbox>
+                    <label><text>"INPUT_0 (PE4):"</text><width>16</width></label>
+                    <led>
+                        <halpin>"input-led-00"</halpin>
+                        <size>16</size>
+                        <on_color>"yellow"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                <hbox>
+                    <label><text>"INPUT_1 (PE6):"</text><width>16</width></label>
+                    <led>
+                        <halpin>"input-led-01"</halpin>
+                        <size>16</size>
+                        <on_color>"yellow"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                <hbox>
+                    <label><text>"INPUT_2 (PC13):"</text><width>16</width></label>
+                    <led>
+                        <halpin>"input-led-02"</halpin>
+                        <size>16</size>
+                        <on_color>"yellow"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                <hbox>
+                    <label><text>"INPUT_3 (PC0):"</text><width>16</width></label>
+                    <led>
+                        <halpin>"input-led-03"</halpin>
+                        <size>16</size>
+                        <on_color>"yellow"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                <hbox>
+                    <label><text>"INPUT_4 (PC1):"</text><width>16</width></label>
+                    <led>
+                        <halpin>"input-led-04"</halpin>
+                        <size>16</size>
+                        <on_color>"yellow"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+            </vbox>
+            
+            <!-- Column 2: INPUT_5 to INPUT_9 -->
+            <vbox>
+                <hbox>
+                    <label><text>"INPUT_5 (PC2):"</text><width>16</width></label>
+                    <led>
+                        <halpin>"input-led-05"</halpin>
+                        <size>16</size>
+                        <on_color>"yellow"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                <hbox>
+                    <label><text>"INPUT_6 (PC3):"</text><width>16</width></label>
+                    <led>
+                        <halpin>"input-led-06"</halpin>
+                        <size>16</size>
+                        <on_color>"yellow"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                <hbox>
+                    <label><text>"INPUT_7 (PC4):"</text><width>16</width></label>
+                    <led>
+                        <halpin>"input-led-07"</halpin>
+                        <size>16</size>
+                        <on_color>"yellow"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                <hbox>
+                    <label><text>"INPUT_8 (PC5):"</text><width>16</width></label>
+                    <led>
+                        <halpin>"input-led-08"</halpin>
+                        <size>16</size>
+                        <on_color>"yellow"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                <hbox>
+                    <label><text>"INPUT_9 (PB0):"</text><width>16</width></label>
+                    <led>
+                        <halpin>"input-led-09"</halpin>
+                        <size>16</size>
+                        <on_color>"yellow"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+            </vbox>
+            
+            <!-- Column 3: INPUT_10 to HALT and QEI Index -->
+            <vbox>
+                <hbox>
+                    <label><text>"INPUT_10 (PB1):"</text><width>16</width></label>
+                    <led>
+                        <halpin>"input-led-10"</halpin>
+                        <size>16</size>
+                        <on_color>"yellow"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                <hbox>
+                    <label><text>"INPUT_11 (PB2):"</text><width>16</width></label>
+                    <led>
+                        <halpin>"input-led-11"</halpin>
+                        <size>16</size>
+                        <on_color>"yellow"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                <hbox>
+                    <label><text>"INPUT_12 (PE7):"</text><width>16</width></label>
+                    <led>
+                        <halpin>"input-led-12"</halpin>
+                        <size>16</size>
+                        <on_color>"yellow"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                <hbox>
+                    <label><text>"HALT (PE2):"</text><width>16</width></label>
+                    <led>
+                        <halpin>"input-led-13"</halpin>
+                        <size>16</size>
+                        <on_color>"red"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+                <hbox>
+                    <label><text>"QEI Index (PA2):"</text><width>16</width></label>
+                    <led>
+                        <halpin>"input-led-14"</halpin>
+                        <size>16</size>
+                        <on_color>"cyan"</on_color>
+                        <off_color>"gray"</off_color>
+                    </led>
+                </hbox>
+            </vbox>
+        </hbox>
+    </labelframe>
+    
+    <!-- ================================================================ -->
+    <!-- TEMPERATURE SENSORS DISPLAY -->
+    <!-- ================================================================ -->
+    <labelframe text="Temperature Sensors">
+        <font>("Helvetica", 12, "bold")</font>
+        <relief>RAISED</relief>
+        <bd>3</bd>
+        
+        <vbox>
+            <hbox>
+                <label><text>"Temp 1 (PV.0):"</text><width>12</width></label>
+                <bar>
+                    <halpin>"temp1-bar"</halpin>
+                    <min_>0</min_>
+                    <max_>300</max_>
+                    <bgcolor>"black"</bgcolor>
+                    <fillcolor>"red"</fillcolor>
+                </bar>
+                <label><text>"°C"</text></label>
+            </hbox>
+            
+            <hbox>
+                <label><text>"Temp 2 (PV.1):"</text><width>12</width></label>
+                <bar>
+                    <halpin>"temp2-bar"</halpin>
+                    <min_>0</min_>
+                    <max_>300</max_>
+                    <bgcolor>"black"</bgcolor>
+                    <fillcolor>"orange"</fillcolor>
+                </bar>
+                <label><text>"°C"</text></label>
+            </hbox>
+            
+            <hbox>
+                <label><text>"Temp 3 (PV.3):"</text><width>12</width></label>
+                <bar>
+                    <halpin>"temp3-bar"</halpin>
+                    <min_>0</min_>
+                    <max_>300</max_>
+                    <bgcolor>"black"</bgcolor>
+                    <fillcolor>"yellow"</fillcolor>
+                </bar>
+                <label><text>"°C"</text></label>
+            </hbox>
+        </vbox>
+    </labelframe>
+    
+    <!-- ================================================================ -->
+    <!-- SPINDLE SPEED DISPLAY -->
+    <!-- ================================================================ -->
+    <labelframe text="Spindle Speed">
+        <font>("Helvetica", 12, "bold")</font>
+        <relief>RAISED</relief>
+        <bd>3</bd>
+        
+        <vbox>
+            <hbox>
+                <label><text>"Speed (SP.0):"</text><width>12</width></label>
+                <bar>
+                    <halpin>"spindle-speed-bar"</halpin>
+                    <min_>0</min_>
+                    <max_>24000</max_>
+                    <bgcolor>"black"</bgcolor>
+                    <fillcolor>"green"</fillcolor>
+                </bar>
+                <label><text>"RPM"</text></label>
+            </hbox>
+        </vbox>
+    </labelframe>
+    
+    <!-- ================================================================ -->
+    <!-- PWM OUTPUTS CONTROL -->
+    <!-- ================================================================ -->
+    <labelframe text="PWM Outputs">
+        <font>("Helvetica", 12, "bold")</font>
+        <relief>RAISED</relief>
+        <bd>3</bd>
+        
+        <vbox>
+            <!-- SP[3] - PWM_0 (PB_14) -->
+            <hbox>
+                <label><text>"PWM_0 (PB14):"</text><width>16</width></label>
+                <scale>
+                    <halpin>"pwm-0-slider"</halpin>
+                    <resolution>1</resolution>
+                    <orient>HORIZONTAL</orient>
+                    <min_>0</min_>
+                    <max_>255</max_>
+                </scale>
+            </hbox>
+            
+            <!-- SP[5] - PWM_1 (PB_15) -->
+            <hbox>
+                <label><text>"PWM_1 (PB15):"</text><width>16</width></label>
+                <scale>
+                    <halpin>"pwm-1-slider"</halpin>
+                    <resolution>1</resolution>
+                    <orient>HORIZONTAL</orient>
+                    <min_>0</min_>
+                    <max_>128</max_>
+                </scale>
+            </hbox>
+        </vbox>
+    </labelframe>
+</pyvcp>

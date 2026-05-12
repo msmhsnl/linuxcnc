@@ -1,0 +1,459 @@
+# ============================================================================
+# Remora HAL Configuration File
+# Generated based on config.txt pin mappings
+# ============================================================================
+
+# load the realtime components
+
+loadrt [KINS]KINEMATICS
+loadrt [EMCMOT]EMCMOT base_period_nsec=[EMCMOT]BASE_PERIOD servo_period_nsec=[EMCMOT]SERVO_PERIOD num_joints=[KINS]JOINTS
+
+loadrt remora-spi
+
+loadrt not  names=x-lim-not,y-lim-not,z-lim-not,tool-probe-not,touch-probe-not
+loadrt PRUencoder names=encoder.0
+loadrt and2 names=run_and,step_and,spindle-r-end,spindle-l-end
+
+# MPG Jog Components
+loadrt conv_float_s32 names=mpg-conv
+loadrt mux4 names=mpg-scale-mux
+
+
+# ============================================================================
+# ESTOP and SPI Communication
+# ============================================================================
+net user-enable-out  <=  iocontrol.0.user-enable-out =>  remora.SPI-enable
+net user-request-enable  <=  iocontrol.0.user-request-enable =>  remora.SPI-reset
+net remora-status  <=  remora.SPI-status  =>  iocontrol.0.emc-enable-in
+
+# ============================================================================
+# HALT (PRU Reset - directly controls GPIO 25 -> STM32 Reset Pin PE_2)
+# ============================================================================
+# Note: PRU-reset is directly controlled from PyVCP button via postgui HAL
+
+
+
+# ============================================================================
+# Thread Functions
+# ============================================================================
+
+addf remora.read servo-thread
+addf motion-command-handler servo-thread
+addf motion-controller servo-thread
+addf remora.update-freq servo-thread
+addf remora.write servo-thread
+addf PRUencoder.capture-position servo-thread
+
+addf x-lim-not              servo-thread
+
+addf spindle-r-end servo-thread
+addf spindle-l-end servo-thread
+
+# MPG functions
+addf mpg-conv               servo-thread
+addf mpg-scale-mux          servo-thread
+
+
+# ============================================================================
+# STEPGEN - JOINT CONFIGURATION
+# ============================================================================
+
+# Joint 0 - X Axis (PE_0: Step, PE_1: Dir, PA_15: Enable)
+
+setp remora.joint.0.scale [JOINT_0]SCALE
+setp remora.joint.0.maxaccel [JOINT_0]STEPGEN_MAXACCEL
+setp remora.joint.0.pgain [JOINT_0]P_GAIN
+setp remora.joint.0.ff1gain [JOINT_0]FF1_GAIN
+setp remora.joint.0.deadband [JOINT_0]DEADBAND
+
+net xpos-cmd  <=  joint.0.motor-pos-cmd  =>  remora.joint.0.pos-cmd  
+net j0pos-fb  <=  remora.joint.0.pos-fb  =>  joint.0.motor-pos-fb
+net j0enable  <=  joint.0.amp-enable-out  =>  remora.joint.0.enable
+
+
+# Joint 1 - Y Axis (PB_8: Step, PB_9: Dir)
+
+setp remora.joint.1.scale [JOINT_1]SCALE
+setp remora.joint.1.maxaccel [JOINT_1]STEPGEN_MAXACCEL
+setp remora.joint.1.pgain [JOINT_1]P_GAIN
+setp remora.joint.1.ff1gain [JOINT_1]FF1_GAIN
+setp remora.joint.1.deadband [JOINT_1]DEADBAND
+
+net j1pos-cmd  <=  joint.1.motor-pos-cmd  =>  remora.joint.1.pos-cmd
+net j1pos-fb  <=  remora.joint.1.pos-fb  =>  joint.1.motor-pos-fb 
+net j1enable  <=  joint.1.amp-enable-out  =>  remora.joint.1.enable
+
+
+# Joint 2 - Z Axis (PB_6: Step, PB_7: Dir)
+
+setp remora.joint.2.scale [JOINT_2]SCALE
+setp remora.joint.2.maxaccel [JOINT_2]STEPGEN_MAXACCEL
+setp remora.joint.2.pgain [JOINT_2]P_GAIN
+setp remora.joint.2.ff1gain [JOINT_2]FF1_GAIN
+setp remora.joint.2.deadband [JOINT_2]DEADBAND
+
+net j2pos-cmd  <=  joint.2.motor-pos-cmd  =>  remora.joint.2.pos-cmd
+net j2pos-fb  <=  remora.joint.2.pos-fb  =>  joint.2.motor-pos-fb
+net j2enable  <=  joint.2.amp-enable-out  =>  remora.joint.2.enable
+
+
+# Joint 3 - A Axis (PB_4: Step, PB_5: Dir)
+
+setp remora.joint.3.scale [JOINT_3]SCALE
+setp remora.joint.3.maxaccel [JOINT_3]STEPGEN_MAXACCEL
+setp remora.joint.3.pgain [JOINT_3]P_GAIN
+setp remora.joint.3.ff1gain [JOINT_3]FF1_GAIN
+setp remora.joint.3.deadband [JOINT_3]DEADBAND
+
+net j3pos-cmd  <=  joint.3.motor-pos-cmd  =>  remora.joint.3.pos-cmd
+net j3pos-fb  <=  remora.joint.3.pos-fb  =>  joint.3.motor-pos-fb
+net j3enable  <=  joint.3.amp-enable-out  =>  remora.joint.3.enable
+
+
+# Joint 4 - B Axis (PD_7: Step, PB_3: Dir)
+
+setp remora.joint.4.scale [JOINT_4]SCALE
+setp remora.joint.4.maxaccel [JOINT_4]STEPGEN_MAXACCEL
+setp remora.joint.4.pgain [JOINT_4]P_GAIN
+setp remora.joint.4.ff1gain [JOINT_4]FF1_GAIN
+setp remora.joint.4.deadband [JOINT_4]DEADBAND
+
+net j4pos-cmd  <=  joint.4.motor-pos-cmd  =>  remora.joint.4.pos-cmd
+net j4pos-fb  <=  remora.joint.4.pos-fb  =>  joint.4.motor-pos-fb
+net j4enable  <=  joint.4.amp-enable-out  =>  remora.joint.4.enable
+
+
+# Joint 5 - C Axis (PD_5: Step, PD_6: Dir)
+
+setp remora.joint.5.scale [JOINT_5]SCALE
+setp remora.joint.5.maxaccel [JOINT_5]STEPGEN_MAXACCEL
+setp remora.joint.5.pgain [JOINT_5]P_GAIN
+setp remora.joint.5.ff1gain [JOINT_5]FF1_GAIN
+setp remora.joint.5.deadband [JOINT_5]DEADBAND
+
+net j5pos-cmd  <=  joint.5.motor-pos-cmd  =>  remora.joint.5.pos-cmd
+net j5pos-fb  <=  remora.joint.5.pos-fb  =>  joint.5.motor-pos-fb
+net j5enable  <=  joint.5.amp-enable-out  =>  remora.joint.5.enable
+
+
+# Joint 6 - U Axis (PD_3: Step, PD_4: Dir)
+
+setp remora.joint.6.scale [JOINT_6]SCALE
+setp remora.joint.6.maxaccel [JOINT_6]STEPGEN_MAXACCEL
+setp remora.joint.6.pgain [JOINT_6]P_GAIN
+setp remora.joint.6.ff1gain [JOINT_6]FF1_GAIN
+setp remora.joint.6.deadband [JOINT_6]DEADBAND
+
+net j6pos-cmd  <=  joint.6.motor-pos-cmd  =>  remora.joint.6.pos-cmd
+net j6pos-fb  <=  remora.joint.6.pos-fb  =>  joint.6.motor-pos-fb
+net j6enable  <=  joint.6.amp-enable-out  =>  remora.joint.6.enable
+
+
+# Joint 7 - V Axis (PD_1: Step, PD_0: Dir)
+
+setp remora.joint.7.scale [JOINT_7]SCALE
+setp remora.joint.7.maxaccel [JOINT_7]STEPGEN_MAXACCEL
+setp remora.joint.7.pgain [JOINT_7]P_GAIN
+setp remora.joint.7.ff1gain [JOINT_7]FF1_GAIN
+setp remora.joint.7.deadband [JOINT_7]DEADBAND
+
+net j7pos-cmd  <=  joint.7.motor-pos-cmd  =>  remora.joint.7.pos-cmd
+net j7pos-fb  <=  remora.joint.7.pos-fb  =>  joint.7.motor-pos-fb
+net j7enable  <=  joint.7.amp-enable-out  =>  remora.joint.7.enable
+
+
+# ============================================================================
+# SPINDLE CONTROL
+# ============================================================================
+# Spindle PWM: remora.SP.0
+# Spindle Direction: SPINDLE_FORWARD (PE_14) -> remora.output.13
+#                    SPINDLE_REVERSE (PE_15) -> remora.output.14
+
+net spindle-speed-cmd spindle.0.speed-out  =>  remora.SP.0
+
+# Spindle direction control:
+net spindle-forward spindle.0.forward  =>  remora.output.13
+net spindle-reverse spindle.0.reverse  =>  remora.output.14
+
+
+# ============================================================================
+# COOLANT CONTROL
+# ============================================================================
+# Example coolant control (uncomment and modify as needed):
+# Flood: OUTPUT_6 (PB_12) -> remora.output.06
+# Mist: OUTPUT_7 (PB_13) -> remora.output.07
+
+# net floodiocontrol.0.coolant-flood  =>  remora.output.06
+# net mistiocontrol.0.coolant-mist   =>  remora.output.07
+
+
+# ============================================================================
+# QEI SPINDLE ENCODER (PV[2], Index: Data Bit 14)
+# ============================================================================
+
+setp encoder.0.position-scale 2000.000000
+setp encoder.0.index-enable true
+
+net spindle-raw-count  <=  remora.PV.2  =>  encoder.0.raw_count
+net spindle-index  <=  remora.input.14  =>  encoder.0.phase-Z 
+
+# Spindle Sync
+net spindle-posencoder.0.position =>  spindle.0.revs
+net spindle-velencoder.0.velocity =>  spindle.0.speed-in
+net spindle-index-enableencoder.0.index-enable< =>  spindle.0.index-enable
+
+
+# ============================================================================
+# TEMPERATURE SENSORS (PV[0], PV[1], PV[3])
+# ============================================================================
+
+net temperature-sensor-1  <=  remora.PV.0
+net temperature-sensor-2  <=  remora.PV.1
+net temperature-sensor-3  <=  remora.PV.3
+
+
+# ============================================================================
+# PWM OUTPUTS
+# ============================================================================
+# SP[0]: Spindle PWM (already connected above)
+# SP[1]: Available
+# SP[2]: Available
+# SP[3]: PWM_0 (PB_14)
+# SP[4]: Available
+# SP[5]: PWM_1 (PB_15)
+
+net pwm-output-1  =>  remora.SP.1
+net pwm-output-2  =>  remora.SP.2
+net pwm-0-pb14  =>  remora.SP.3
+net pwm-output-4  =>  remora.SP.4
+net pwm-1-pb15  =>  remora.SP.5
+
+
+# ============================================================================
+# DIGITAL OUTPUTS (UI Controlled)
+# ============================================================================
+# Output assignments from config.txt:
+# Bit 00 - PA_8  - OUTPUT_0 (General Purpose)
+# Bit 01 - PD_14 - OUTPUT_1 (General Purpose)
+# Bit 02 - PD_15 - OUTPUT_2 (General Purpose)
+# Bit 03 - PD_12 - OUTPUT_3 (General Purpose)
+# Bit 04 - PD_13 - OUTPUT_4 (General Purpose)
+# Bit 05 - PD_10 - OUTPUT_5 (General Purpose)
+# Bit 06 - PB_12 - OUTPUT_6 (General Purpose)
+# Bit 07 - PB_13 - OUTPUT_7 (General Purpose)
+# Bit 08 - PE_9  - OUTPUT_8 (General Purpose)
+# Bit 09 - PE_8  - OUTPUT_9 (General Purpose)
+# Bit 10 - PE_10 - OUTPUT_10 (General Purpose)
+# Bit 11 - PB_11 - OUTPUT_11 (General Purpose)
+# Bit 12 - PB_10 - OUTPUT_12 (General Purpose)
+# Bit 13 - PE_14 - SPINDLE_FORWARD (Spindle Direction)
+# Bit 14 - PE_15 - SPINDLE_REVERSE (Spindle Direction)
+
+# OUTPUT_0 - PA_8 (General Purpose)
+net output-0-pa8  =>  remora.output.00
+
+# OUTPUT_1 - PD_14 (General Purpose)
+net output-1-pd14  =>  remora.output.01
+
+# OUTPUT_2 - PD_15 (General Purpose)
+net output-2-pd15  =>  remora.output.02
+
+# OUTPUT_3 - PD_12 (General Purpose)
+net output-3-pd12  =>  remora.output.03
+
+# OUTPUT_4 - PD_13 (General Purpose)
+net output-4-pd13  =>  remora.output.04
+
+# OUTPUT_5 - PD_10 (General Purpose)
+net output-5-pd10  =>  remora.output.05
+
+# OUTPUT_6 - PB_12 (General Purpose)
+net output-6-pb12  =>  remora.output.06
+
+# OUTPUT_7 - PB_13 (General Purpose)
+net output-7-pb13  =>  remora.output.07
+
+# OUTPUT_8 - PE_9 (General Purpose)
+net output-8-pe9  =>  remora.output.08
+
+# OUTPUT_9 - PE_8 (General Purpose)
+net output-9-pe8  =>  remora.output.09
+
+# OUTPUT_10 - PE_10 (General Purpose)
+net output-10-pe10  =>  remora.output.10
+
+# OUTPUT_11 - PB_11 (General Purpose)
+net output-11-pb11  =>  remora.output.11
+
+# OUTPUT_12 - PB_10 (General Purpose)
+net output-12-pb10  =>  remora.output.12
+
+# SPINDLE_FORWARD - PE_14 (Spindle Direction)
+net spindle-forward  =>  remora.output.13
+
+# SPINDLE_REVERSE - PE_15 (Spindle Direction)
+net spindle-reverse  =>  remora.output.14
+
+
+# ============================================================================
+# DIGITAL INPUTS
+# ============================================================================
+# Input assignments from config.txt:
+# RESET_PIN - PA_3  - Reset Pin (PRU Reset - not available as digital input)
+# Bit 00 - PE_4  - INPUT_0 (General Input)
+# Bit 01 - PE_6  - INPUT_1 (General Input)
+# Bit 02 - PC_13 - INPUT_2 (General Input)
+# Bit 03 - PC_0  - INPUT_3 (General Input)
+# Bit 04 - PC_1  - INPUT_4 (General Input)
+# Bit 05 - PC_2  - INPUT_5 (General Input)
+# Bit 06 - PC_3  - INPUT_6 (General Input)
+# Bit 07 - PC_4  - INPUT_7 (General Input)
+# Bit 08 - PC_5  - INPUT_8 (General Input)
+# Bit 09 - PB_0  - INPUT_9 (General Input)
+# Bit 10 - PB_1  - INPUT_10 (General Input)
+# Bit 11 - PB_2  - INPUT_11 (General Input)
+# Bit 12 - PE_7  - INPUT_12 (General Input)
+# Bit 13 - PE_2  - HALT (General Input)
+# Bit 14 - (QEI Index - PA_2, reserved for encoder)
+
+# INPUT_0 - PE_4
+net input-0-pe4  <=  remora.input.00
+
+# INPUT_1 - PE_6
+net input-1-pe6  <=  remora.input.01
+
+# INPUT_2 - PC_13
+net input-2-pc13  <=  remora.input.02
+
+# INPUT_3 - PC_0
+net input-3-pc0  <=  remora.input.03
+
+# INPUT_4 - PC_1
+net input-4-pc1  <=  remora.input.04
+
+# INPUT_5 - PC_2
+net input-5-pc2  <=  remora.input.05
+
+# INPUT_6 - PC_3
+net input-6-pc3  <=  remora.input.06
+
+# INPUT_7 - PC_4
+net input-7-pc4  <=  remora.input.07
+
+# INPUT_8 - PC_5
+net input-8-pc5  <=  remora.input.08
+
+# INPUT_9 - PB_0
+net input-9-pb0  <=  remora.input.09
+
+# INPUT_10 - PB_1
+net input-10-pb1  <=  remora.input.10
+
+# INPUT_11 - PB_2
+net input-11-pb2  <=  remora.input.11
+
+# INPUT_12 - PE_7
+net input-12-pe7  <=  remora.input.12
+
+# HALT - PE_2
+net input-halt-pe2  <=  remora.input.13
+
+# QEI Index - Bit 14 (PA_2) - Reserved for encoder, connected above as spindle-index
+
+
+# ============================================================================
+# MPG HANDWHEEL JOGGING (PV[4])
+# ============================================================================
+# MPG encoder count comes from Remora PV.4 (float)
+# Convert to s32 for jog-counts input
+
+# MPG Raw Count from Remora (float) -> Convert to s32
+net mpg-raw-count  <=  remora.PV.4  =>  mpg-conv.in
+net mpg-counts  <=  mpg-conv.out
+
+# MPG Scale Selection (x1, x10, x100, x1000 - typically 0.001, 0.01, 0.1, 1.0 mm per click)
+setp mpg-scale-mux.in0 [MPG]SCALE_0
+setp mpg-scale-mux.in1 [MPG]SCALE_1
+setp mpg-scale-mux.in2 [MPG]SCALE_2
+setp mpg-scale-mux.in3 [MPG]SCALE_3
+
+# Scale selection inputs (can be connected to remora.input pins for selector switch)
+net mpg-scale-sel0  =>  mpg-scale-mux.sel0
+net mpg-scale-sel1  =>  mpg-scale-mux.sel1
+net mpg-scale  <=  mpg-scale-mux.out
+
+# X Axis Jog
+net mpg-counts      =>  joint.0.jog-counts
+net mpg-counts      =>  axis.x.jog-counts
+net mpg-x-enable    =>  joint.0.jog-enable
+net mpg-x-enable    =>  axis.x.jog-enable
+net mpg-scale       =>  joint.0.jog-scale
+net mpg-scale       =>  axis.x.jog-scale
+setp joint.0.jog-vel-mode 0
+
+# Y Axis Jog  
+net mpg-counts      =>  joint.1.jog-counts
+net mpg-counts      =>  axis.y.jog-counts
+net mpg-y-enable    =>  joint.1.jog-enable
+net mpg-y-enable    =>  axis.y.jog-enable
+net mpg-scale       =>  joint.1.jog-scale
+net mpg-scale       =>  axis.y.jog-scale
+setp joint.1.jog-vel-mode 0
+
+# Z Axis Jog
+net mpg-counts      =>  joint.2.jog-counts
+net mpg-counts      =>  axis.z.jog-counts
+net mpg-z-enable    =>  joint.2.jog-enable
+net mpg-z-enable    =>  axis.z.jog-enable
+net mpg-scale       =>  joint.2.jog-scale
+net mpg-scale       =>  axis.z.jog-scale
+setp joint.2.jog-vel-mode 0
+
+# A Axis Jog (Joint 3)
+net mpg-counts      =>  joint.3.jog-counts
+net mpg-counts      =>  axis.a.jog-counts
+net mpg-a-enable    =>  joint.3.jog-enable
+net mpg-a-enable    =>  axis.a.jog-enable
+net mpg-scale       =>  joint.3.jog-scale
+net mpg-scale       =>  axis.a.jog-scale
+setp joint.3.jog-vel-mode 0
+
+# B Axis Jog (Joint 4)
+net mpg-counts      =>  joint.4.jog-counts
+net mpg-counts      =>  axis.b.jog-counts
+net mpg-b-enable    =>  joint.4.jog-enable
+net mpg-b-enable    =>  axis.b.jog-enable
+net mpg-scale       =>  joint.4.jog-scale
+net mpg-scale       =>  axis.b.jog-scale
+setp joint.4.jog-vel-mode 0
+
+# C Axis Jog (Joint 5)
+net mpg-counts      =>  joint.5.jog-counts
+net mpg-counts      =>  axis.c.jog-counts
+net mpg-c-enable    =>  joint.5.jog-enable
+net mpg-c-enable    =>  axis.c.jog-enable
+net mpg-scale       =>  joint.5.jog-scale
+net mpg-scale       =>  axis.c.jog-scale
+setp joint.5.jog-vel-mode 0
+
+# U Axis Jog (Joint 6)
+net mpg-counts      =>  joint.6.jog-counts
+net mpg-counts      =>  axis.u.jog-counts
+net mpg-u-enable    =>  joint.6.jog-enable
+net mpg-u-enable    =>  axis.u.jog-enable
+net mpg-scale       =>  joint.6.jog-scale
+net mpg-scale       =>  axis.u.jog-scale
+setp joint.6.jog-vel-mode 0
+
+# V Axis Jog (Joint 7)
+net mpg-counts      =>  joint.7.jog-counts
+net mpg-counts      =>  axis.v.jog-counts
+net mpg-v-enable    =>  joint.7.jog-enable
+net mpg-v-enable    =>  axis.v.jog-enable
+net mpg-scale       =>  joint.7.jog-scale
+net mpg-scale       =>  axis.v.jog-scale
+setp joint.7.jog-vel-mode 0
+
+# Default scale selection (scale 1 = 0.01mm per click)
+sets mpg-scale-sel0 1
+sets mpg-scale-sel1 0
