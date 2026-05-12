@@ -66,6 +66,17 @@ net j2pos-cmd  <=  joint.2.motor-pos-cmd  =>  remora.joint.2.pos-cmd
 net j2pos-fb   <=  remora.joint.2.pos-fb  =>  joint.2.motor-pos-fb
 net j2enable   <=  joint.2.amp-enable-out  =>  remora.joint.2.enable
 
+# Joint 3 - A Axis
+setp remora.joint.3.scale    [JOINT_3]SCALE
+setp remora.joint.3.maxaccel [JOINT_3]STEPGEN_MAX_ACC
+setp remora.joint.3.pgain    [JOINT_3]P_GAIN
+setp remora.joint.3.ff1gain  [JOINT_3]FF1_GAIN
+setp remora.joint.3.deadband [JOINT_3]DEADBAND
+
+net j3pos-cmd  <=  joint.3.motor-pos-cmd  =>  remora.joint.3.pos-cmd
+net j3pos-fb   <=  remora.joint.3.pos-fb  =>  joint.3.motor-pos-fb
+net j3enable   <=  joint.3.amp-enable-out  =>  remora.joint.3.enable
+
 # ============================================================================
 # SPINDLE CONTROL
 # ============================================================================
@@ -102,32 +113,23 @@ net mpg-scale-sel0  =>  mpg-scale-mux.sel0
 net mpg-scale-sel1  =>  mpg-scale-mux.sel1
 net mpg-scale       <=  mpg-scale-mux.out
 
-# MPG X Axis Jog
-net mpg-counts    =>  joint.0.jog-counts
-net mpg-counts    =>  axis.x.jog-counts
-net mpg-x-enable  =>  joint.0.jog-enable
-net mpg-x-enable  =>  axis.x.jog-enable
-net mpg-scale     =>  joint.0.jog-scale
-net mpg-scale     =>  axis.x.jog-scale
+# MPG Jog - counts and scale connected to all joints
+# jog-enable pins are connected in vertical_postgui.hal (qtdragon pins)
+net mpg-counts    =>  joint.0.jog-counts  axis.x.jog-counts
+net mpg-scale     =>  joint.0.jog-scale   axis.x.jog-scale
 setp joint.0.jog-vel-mode 0
 
-# MPG Y Axis Jog
-net mpg-counts    =>  joint.1.jog-counts
-net mpg-counts    =>  axis.y.jog-counts
-net mpg-y-enable  =>  joint.1.jog-enable
-net mpg-y-enable  =>  axis.y.jog-enable
-net mpg-scale     =>  joint.1.jog-scale
-net mpg-scale     =>  axis.y.jog-scale
+net mpg-counts    =>  joint.1.jog-counts  axis.y.jog-counts
+net mpg-scale     =>  joint.1.jog-scale   axis.y.jog-scale
 setp joint.1.jog-vel-mode 0
 
-# MPG Z Axis Jog
-net mpg-counts    =>  joint.2.jog-counts
-net mpg-counts    =>  axis.z.jog-counts
-net mpg-z-enable  =>  joint.2.jog-enable
-net mpg-z-enable  =>  axis.z.jog-enable
-net mpg-scale     =>  joint.2.jog-scale
-net mpg-scale     =>  axis.z.jog-scale
+net mpg-counts    =>  joint.2.jog-counts  axis.z.jog-counts
+net mpg-scale     =>  joint.2.jog-scale   axis.z.jog-scale
 setp joint.2.jog-vel-mode 0
+
+net mpg-counts    =>  joint.3.jog-counts  axis.a.jog-counts
+net mpg-scale     =>  joint.3.jog-scale   axis.a.jog-scale
+setp joint.3.jog-vel-mode 0
 
 # Default MPG scale selection (index 1 = 0.01 mm/click)
 sets mpg-scale-sel0 1

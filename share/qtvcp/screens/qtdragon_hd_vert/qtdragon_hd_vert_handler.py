@@ -319,10 +319,11 @@ class HandlerClass:
         QHAL.newpin("comp-on", Qhal.HAL_BIT, Qhal.HAL_OUT)
         QHAL.newpin("spindle-lift-on", Qhal.HAL_BIT, Qhal.HAL_OUT)
 
-        # MPG axis selection output pins
-        QHAL.newpin("jog-x-enable", QHAL.HAL_BIT, QHAL.HAL_OUT)
-        QHAL.newpin("jog-y-enable", QHAL.HAL_BIT, QHAL.HAL_OUT)
-        QHAL.newpin("jog-z-enable", QHAL.HAL_BIT, QHAL.HAL_OUT)
+        # MPG axis selection output pins (one per available axis, indexed by joint number)
+        for axis in INFO.AVAILABLE_AXES:
+            jnum = INFO.GET_JOG_FROM_NAME.get(axis, -1)
+            if jnum >= 0:
+                QHAL.newpin('jog-joint-{}-enable'.format(jnum), QHAL.HAL_BIT, QHAL.HAL_OUT)
 
     def init_preferences(self):
         if not self.w.PREFS_:
@@ -1646,9 +1647,11 @@ class HandlerClass:
         jnum = INFO.GET_JOG_FROM_NAME.get(axis, -1)
         if isinstance(jnum, int) and jnum >= 0:
             ACTION.SET_SELECTED_JOINT(jnum)
-        self.h['jog-x-enable'] = (axis == 'X')
-        self.h['jog-y-enable'] = (axis == 'Y')
-        self.h['jog-z-enable'] = (axis == 'Z')
+        selected_jnum = INFO.GET_JOG_FROM_NAME.get(axis, -1)
+        for ax in INFO.AVAILABLE_AXES:
+            jnum = INFO.GET_JOG_FROM_NAME.get(ax, -1)
+            if jnum >= 0:
+                self.h['jog-joint-{}-enable'.format(jnum)] = (jnum == selected_jnum)
 
     def _reapply_axis_select(self):
         static = [(self.w.axis_select_x, 'X'),

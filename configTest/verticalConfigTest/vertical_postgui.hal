@@ -16,10 +16,12 @@ setp z_level_compensation.method 1
 # connect signals
 ########################################################################
 
-# MPG Axis Selection (qtdragon handler pins -> HAL signals defined in vertical.hal)
-net mpg-x-enable  <=  qtdragon.jog-x-enable
-net mpg-y-enable  <=  qtdragon.jog-y-enable
-net mpg-z-enable  <=  qtdragon.jog-z-enable
+# MPG Axis Jog Enable (qtdragon handler, joint-number indexed)
+# Pin count matches AVAILABLE_AXES in INI - add lines here when new joints are added
+net mpg-joint-0  qtdragon.jog-joint-0-enable  =>  joint.0.jog-enable  axis.x.jog-enable
+net mpg-joint-1  qtdragon.jog-joint-1-enable  =>  joint.1.jog-enable  axis.y.jog-enable
+net mpg-joint-2  qtdragon.jog-joint-2-enable  =>  joint.2.jog-enable  axis.z.jog-enable
+net mpg-joint-3  qtdragon.jog-joint-3-enable  =>  joint.3.jog-enable  axis.a.jog-enable
 
 # the unlink pin commands are only used, because they are connected 
 # in core_sim.hal and we use this file to simulate
