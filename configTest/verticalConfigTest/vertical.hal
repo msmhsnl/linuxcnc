@@ -1,51 +1,134 @@
-# core HAL config file for simulation
+# HAL configuration for vertical machine with Remora firmware (XYZ, 3-joint)
 
-# first load all the RT modules that will be needed
-# kinematics
 loadrt [KINS]KINEMATICS
-# motion controller, get name and thread periods from INI file
 loadrt [EMCMOT]EMCMOT base_period_nsec=[EMCMOT]BASE_PERIOD servo_period_nsec=[EMCMOT]SERVO_PERIOD num_joints=[KINS]JOINTS
-# load 6 differentiators (for velocity and accel signals
-loadrt ddt names=ddt_x,ddt_xv,ddt_y,ddt_yv,ddt_z,ddt_zv
-# load additional blocks
-loadrt hypot names=vel_xy,vel_xyz
 
-# add motion controller functions to servo thread
-addf motion-command-handler servo-thread
-addf motion-controller servo-thread
-# link the differentiator functions into the code
-addf ddt_x servo-thread
-addf ddt_xv servo-thread
-addf ddt_y servo-thread
-addf ddt_yv servo-thread
-addf ddt_z servo-thread
-addf ddt_zv servo-thread
-addf vel_xy servo-thread
-addf vel_xyz servo-thread
+loadrt remora-spi
+loadrt PRUencoder names=encoder.0
+loadrt conv_float_s32 names=mpg-conv
+loadrt mux4 names=mpg-scale-mux
 
-# create HAL signals for position commands from motion module
-# loop position commands back to motion module feedback
-net Xpos joint.0.motor-pos-cmd => joint.0.motor-pos-fb ddt_x.in
-net Ypos joint.1.motor-pos-cmd => joint.1.motor-pos-fb ddt_y.in
-net Zpos joint.2.motor-pos-cmd => joint.2.motor-pos-fb ddt_z.in
+# Thread functions
+addf remora.read                 servo-thread
+addf motion-command-handler      servo-thread
+addf motion-controller           servo-thread
+addf remora.update-freq          servo-thread
+addf remora.write                servo-thread
+addf PRUencoder.capture-position servo-thread
+addf mpg-conv                    servo-thread
+addf mpg-scale-mux               servo-thread
 
-# send the position commands thru differentiators to
-# generate velocity and accel signals
-net Xvel ddt_x.out => ddt_xv.in vel_xy.in0
-net Xacc <= ddt_xv.out
-net Yvel ddt_y.out => ddt_yv.in vel_xy.in1
-net Yacc <= ddt_yv.out
-net Zvel ddt_z.out => ddt_zv.in vel_xyz.in0
-net Zacc <= ddt_zv.out
+# ============================================================================
+# ESTOP and SPI Communication
+# ============================================================================
+net user-enable-out      <=  iocontrol.0.user-enable-out      =>  remora.SPI-enable
+net user-request-enable  <=  iocontrol.0.user-request-enable  =>  remora.SPI-reset
+net remora-status        <=  remora.SPI-status                =>  iocontrol.0.emc-enable-in
 
-# Cartesian 2- and 3-axis velocities
-net XYvel vel_xy.out => vel_xyz.in1
-net XYZvel <= vel_xyz.out
+# Tool change loopback (unlinked in postgui for manual tool change)
+net tool-prep-loop    iocontrol.0.tool-prepare   iocontrol.0.tool-prepared
+net tool-change-loop  iocontrol.0.tool-change    iocontrol.0.tool-changed
 
-# estop loopback
-net estop-loop iocontrol.0.user-enable-out iocontrol.0.emc-enable-in
+# ============================================================================
+# STEPGEN - JOINT CONFIGURATION
+# ============================================================================
 
-# create signals for tool loading loopback
-net tool-prep-loop iocontrol.0.tool-prepare iocontrol.0.tool-prepared
-net tool-change-loop iocontrol.0.tool-change iocontrol.0.tool-changed
+# Joint 0 - X Axis
+setp remora.joint.0.scale    [JOINT_0]SCALE
+setp remora.joint.0.maxaccel [JOINT_0]STEPGEN_MAX_ACC
+setp remora.joint.0.pgain    [JOINT_0]P_GAIN
+setp remora.joint.0.ff1gain  [JOINT_0]FF1_GAIN
+setp remora.joint.0.deadband [JOINT_0]DEADBAND
 
+net j0pos-cmd  <=  joint.0.motor-pos-cmd  =>  remora.joint.0.pos-cmd
+net j0pos-fb   <=  remora.joint.0.pos-fb  =>  joint.0.motor-pos-fb
+net j0enable   <=  joint.0.amp-enable-out  =>  remora.joint.0.enable
+
+# Joint 1 - Y Axis
+setp remora.joint.1.scale    [JOINT_1]SCALE
+setp remora.joint.1.maxaccel [JOINT_1]STEPGEN_MAX_ACC
+setp remora.joint.1.pgain    [JOINT_1]P_GAIN
+setp remora.joint.1.ff1gain  [JOINT_1]FF1_GAIN
+setp remora.joint.1.deadband [JOINT_1]DEADBAND
+
+net j1pos-cmd  <=  joint.1.motor-pos-cmd  =>  remora.joint.1.pos-cmd
+net j1pos-fb   <=  remora.joint.1.pos-fb  =>  joint.1.motor-pos-fb
+net j1enable   <=  joint.1.amp-enable-out  =>  remora.joint.1.enable
+
+# Joint 2 - Z Axis
+setp remora.joint.2.scale    [JOINT_2]SCALE
+setp remora.joint.2.maxaccel [JOINT_2]STEPGEN_MAX_ACC
+setp remora.joint.2.pgain    [JOINT_2]P_GAIN
+setp remora.joint.2.ff1gain  [JOINT_2]FF1_GAIN
+setp remora.joint.2.deadband [JOINT_2]DEADBAND
+
+net j2pos-cmd  <=  joint.2.motor-pos-cmd  =>  remora.joint.2.pos-cmd
+net j2pos-fb   <=  remora.joint.2.pos-fb  =>  joint.2.motor-pos-fb
+net j2enable   <=  joint.2.amp-enable-out  =>  remora.joint.2.enable
+
+# ============================================================================
+# SPINDLE CONTROL
+# ============================================================================
+# Spindle PWM: remora.SP.0
+# Forward: PE_14 -> remora.output.13  /  Reverse: PE_15 -> remora.output.14
+net spindle-speed-cmd  spindle.0.speed-out  =>  remora.SP.0
+net spindle-forward    spindle.0.forward    =>  remora.output.13
+net spindle-reverse    spindle.0.reverse    =>  remora.output.14
+
+# ============================================================================
+# SPINDLE ENCODER (QEI via remora.PV.2, Index: remora.input.14)
+# ============================================================================
+setp encoder.0.position-scale 2000.0
+setp encoder.0.index-enable true
+
+net spindle-raw-count     <=  remora.PV.2          =>  encoder.0.raw_count
+net spindle-index         <=  remora.input.14      =>  encoder.0.phase-Z
+net spindle-pos               encoder.0.position   =>  spindle.0.revs
+net spindle-vel               encoder.0.velocity   =>  spindle.0.speed-in
+net spindle-index-enable       encoder.0.index-enable spindle.0.index-enable
+
+# ============================================================================
+# MPG HANDWHEEL JOGGING (remora.PV.4)
+# ============================================================================
+net mpg-raw-count  <=  remora.PV.4  =>  mpg-conv.in
+net mpg-counts     <=  mpg-conv.out
+
+setp mpg-scale-mux.in0 [MPG]SCALE_0
+setp mpg-scale-mux.in1 [MPG]SCALE_1
+setp mpg-scale-mux.in2 [MPG]SCALE_2
+setp mpg-scale-mux.in3 [MPG]SCALE_3
+
+net mpg-scale-sel0  =>  mpg-scale-mux.sel0
+net mpg-scale-sel1  =>  mpg-scale-mux.sel1
+net mpg-scale       <=  mpg-scale-mux.out
+
+# MPG X Axis Jog
+net mpg-counts    =>  joint.0.jog-counts
+net mpg-counts    =>  axis.x.jog-counts
+net mpg-x-enable  =>  joint.0.jog-enable
+net mpg-x-enable  =>  axis.x.jog-enable
+net mpg-scale     =>  joint.0.jog-scale
+net mpg-scale     =>  axis.x.jog-scale
+setp joint.0.jog-vel-mode 0
+
+# MPG Y Axis Jog
+net mpg-counts    =>  joint.1.jog-counts
+net mpg-counts    =>  axis.y.jog-counts
+net mpg-y-enable  =>  joint.1.jog-enable
+net mpg-y-enable  =>  axis.y.jog-enable
+net mpg-scale     =>  joint.1.jog-scale
+net mpg-scale     =>  axis.y.jog-scale
+setp joint.1.jog-vel-mode 0
+
+# MPG Z Axis Jog
+net mpg-counts    =>  joint.2.jog-counts
+net mpg-counts    =>  axis.z.jog-counts
+net mpg-z-enable  =>  joint.2.jog-enable
+net mpg-z-enable  =>  axis.z.jog-enable
+net mpg-scale     =>  joint.2.jog-scale
+net mpg-scale     =>  axis.z.jog-scale
+setp joint.2.jog-vel-mode 0
+
+# Default MPG scale selection (index 1 = 0.01 mm/click)
+sets mpg-scale-sel0 1
+sets mpg-scale-sel1 0

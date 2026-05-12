@@ -16,7 +16,10 @@ setp z_level_compensation.method 1
 # connect signals
 ########################################################################
 
-net spindle-speed-limited  =>  spindle.0.speed-out-rps => spindle.0.speed-in
+# MPG Axis Selection (qtdragon handler pins -> HAL signals defined in vertical.hal)
+net mpg-x-enable  <=  qtdragon.jog-x-enable
+net mpg-y-enable  <=  qtdragon.jog-y-enable
+net mpg-z-enable  <=  qtdragon.jog-z-enable
 
 # the unlink pin commands are only used, because they are connected 
 # in core_sim.hal and we use this file to simulate
