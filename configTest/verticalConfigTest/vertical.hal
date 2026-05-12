@@ -7,6 +7,8 @@ loadrt remora-spi
 loadrt PRUencoder names=encoder.0
 loadrt conv_float_s32 names=mpg-conv
 loadrt mux4 names=mpg-scale-mux
+loadrt estop_latch names=estop-latch
+loadrt not names=estop-btn-not
 
 # Thread functions
 addf remora.read                 servo-thread
@@ -17,13 +19,19 @@ addf remora.write                servo-thread
 addf PRUencoder.capture-position servo-thread
 addf mpg-conv                    servo-thread
 addf mpg-scale-mux               servo-thread
+addf estop-btn-not               servo-thread
+addf estop-latch                 servo-thread
 
 # ============================================================================
 # ESTOP and SPI Communication
 # ============================================================================
 net user-enable-out      <=  iocontrol.0.user-enable-out      =>  remora.SPI-enable
-net user-request-enable  <=  iocontrol.0.user-request-enable  =>  remora.SPI-reset
-net remora-status        <=  remora.SPI-status                =>  iocontrol.0.emc-enable-in
+net user-request-enable  <=  iocontrol.0.user-request-enable  =>  remora.SPI-reset  estop-latch.reset
+# remora.input.13: NC estop button (HIGH=OK, LOW=button pressed=fault)
+net estop-hw-button      <=  remora.input.13                  =>  estop-btn-not.in
+net estop-fault          <=  estop-btn-not.out                =>  estop-latch.fault-in
+net remora-status        <=  remora.SPI-status                =>  estop-latch.ok-in
+net estop-ok             <=  estop-latch.ok-out               =>  iocontrol.0.emc-enable-in
 
 # Tool change loopback (unlinked in postgui for manual tool change)
 net tool-prep-loop    iocontrol.0.tool-prepare   iocontrol.0.tool-prepared
