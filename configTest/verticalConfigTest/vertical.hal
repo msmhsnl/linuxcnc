@@ -60,15 +60,15 @@ net pause-cmd        <=  pause-run-gate.out         =>  halui.program.pause
 net stop-cmd         <=  pause-stop-gate.out        =>  halui.program.stop
 
 # ============================================================================
-# CYCLE START BUTTON
+# CYCLE START/RESUME BUTTON
 # ============================================================================
 # remora.input.00: NC cycle-start button (HIGH=idle, LOW=pressed)
 # idle  → run;  paused → resume  (running → no-op)
 setp cycle-oneshot.width 0.1
 net cycle-inverted   <=  cycle-btn-not.out       =>  cycle-oneshot.in
-net cycle-pulse      <=  cycle-oneshot.out        =>  cycle-auto-gate.in0
+net cycle-pulse      <=  cycle-oneshot.out        =>  cycle-auto-gate.in0 cycle-resume-gate.in0
 net mode-is-auto     <=  halui.mode.is-auto       =>  cycle-auto-gate.in1
-net cycle-gated      <=  cycle-auto-gate.out      =>  cycle-run-gate.in0  cycle-resume-gate.in0
+net cycle-gated      <=  cycle-auto-gate.out      =>  cycle-run-gate.in0
 net prog-is-idle     <=  halui.program.is-idle    =>  cycle-run-gate.in1
 net prog-is-paused   <=  halui.program.is-paused  =>  cycle-resume-gate.in1
 net cycle-run-cmd    <=  cycle-run-gate.out       =>  halui.program.run
