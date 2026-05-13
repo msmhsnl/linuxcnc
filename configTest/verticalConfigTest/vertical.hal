@@ -142,3 +142,45 @@ setp joint.3.jog-vel-mode 0
 # Default MPG scale selection (index 1 = 0.01 mm/click)
 sets mpg-scale-sel0 1
 sets mpg-scale-sel1 0
+
+# INPUTS
+
+# INPUT_0 - PE_4
+net input-0-pe4  <=  remora.input.00
+
+# INPUT_1 - PE_6
+net input-1-pe6  <=  remora.input.01
+
+# INPUT_2 - PC_13
+net input-2-pc13  <=  remora.input.02
+
+# INPUT_3 - PC_0
+net input-3-pc0  <=  remora.input.03
+
+# INPUT_4 - PC_1
+net input-4-pc1  <=  remora.input.04
+
+# INPUT_5 - PC_2
+net input-5-pc2  <=  remora.input.05
+
+# INPUT_6 - PC_3
+net input-6-pc3  <=  remora.input.06
+
+# INPUT_7 - PC_4
+net input-7-pc4  <=  remora.input.07
+
+# INPUT_8 - PC_5
+net input-8-pc5  <=  remora.input.08
+
+# INPUT_9 - PB_0
+net input-9-pb0  <=  remora.input.09
+
+# INPUT_10 - PB_1
+net input-10-pb1  <=  remora.input.10
+
+# INPUT_11 - PB_2
+net input-11-pb2  <=  remora.input.11
+
+# INPUT_12 - PE_7
+net input-12-pe7  <=  remora.input.12
+
