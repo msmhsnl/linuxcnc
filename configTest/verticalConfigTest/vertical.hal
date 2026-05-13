@@ -8,9 +8,9 @@ loadrt PRUencoder names=encoder.0
 loadrt conv_float_s32 names=mpg-conv
 loadrt mux4 names=mpg-scale-mux
 loadrt estop_latch names=estop-latch
-loadrt not names=estop-btn-not,pause-btn-not,cycle-btn-not
+loadrt not names=estop-btn-not,pause-btn-not,cycle-btn-not,pause-run-not
 loadrt oneshot names=pause-oneshot,cycle-oneshot
-loadrt and2 names=cycle-run-gate,cycle-resume-gate,cycle-auto-gate
+loadrt and2 names=cycle-run-gate,cycle-resume-gate,cycle-auto-gate,pause-run-gate,pause-stop-gate
 
 # Thread functions
 addf remora.read                 servo-thread
@@ -25,6 +25,9 @@ addf estop-btn-not               servo-thread
 addf estop-latch                 servo-thread
 addf pause-btn-not               servo-thread
 addf pause-oneshot               servo-thread
+addf pause-run-not               servo-thread
+addf pause-run-gate              servo-thread
+addf pause-stop-gate             servo-thread
 addf cycle-btn-not               servo-thread
 addf cycle-oneshot               servo-thread
 addf cycle-auto-gate             servo-thread
@@ -43,14 +46,18 @@ net remora-status        <=  remora.SPI-status                =>  estop-latch.ok
 net estop-ok             <=  estop-latch.ok-out               =>  iocontrol.0.emc-enable-in
 
 # ============================================================================
-# PAUSE BUTTON
+# PAUSE/STOP BUTTON
 # ============================================================================
-# remora.input.02: NC pause button (HIGH=idle, LOW=pressed)
-# not inverts signal → oneshot triggers on rising edge (button press) → 100ms pulse → halui
+# remora.input.02: NC pause/stop button (HIGH=idle, LOW=pressed)
+# is-running → pause;  NOT(is-running) → abort
 setp pause-oneshot.width 0.1
-net input-2-pc13   =>  pause-btn-not.in
-net pause-inverted <=  pause-btn-not.out  =>  pause-oneshot.in
-net pause-cmd      <=  pause-oneshot.out  =>  halui.program.pause
+net input-2-pc13     =>  pause-btn-not.in
+net pause-inverted   <=  pause-btn-not.out         =>  pause-oneshot.in
+net pause-pulse      <=  pause-oneshot.out          =>  pause-run-gate.in0  pause-stop-gate.in0
+net prog-is-running  <=  halui.program.is-running   =>  pause-run-gate.in1  pause-run-not.in
+net prog-not-running <=  pause-run-not.out          =>  pause-stop-gate.in1
+net pause-cmd        <=  pause-run-gate.out         =>  halui.program.pause
+net stop-cmd         <=  pause-stop-gate.out        =>  halui.program.stop
 
 # ============================================================================
 # CYCLE START BUTTON
