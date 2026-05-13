@@ -8,7 +8,8 @@ loadrt PRUencoder names=encoder.0
 loadrt conv_float_s32 names=mpg-conv
 loadrt mux4 names=mpg-scale-mux
 loadrt estop_latch names=estop-latch
-loadrt not names=estop-btn-not
+loadrt not names=estop-btn-not,pause-btn-not
+loadrt oneshot names=pause-oneshot
 
 # Thread functions
 addf remora.read                 servo-thread
@@ -21,6 +22,8 @@ addf mpg-conv                    servo-thread
 addf mpg-scale-mux               servo-thread
 addf estop-btn-not               servo-thread
 addf estop-latch                 servo-thread
+addf pause-btn-not               servo-thread
+addf pause-oneshot               servo-thread
 
 # ============================================================================
 # ESTOP and SPI Communication
@@ -32,6 +35,16 @@ net estop-hw-button      <=  remora.input.13                  =>  estop-btn-not.
 net estop-fault          <=  estop-btn-not.out                =>  estop-latch.fault-in
 net remora-status        <=  remora.SPI-status                =>  estop-latch.ok-in
 net estop-ok             <=  estop-latch.ok-out               =>  iocontrol.0.emc-enable-in
+
+# ============================================================================
+# PAUSE BUTTON
+# ============================================================================
+# remora.input.02: NC pause button (HIGH=idle, LOW=pressed)
+# not inverts signal → oneshot triggers on rising edge (button press) → 100ms pulse → halui
+setp pause-oneshot.width 0.1
+net input-2-pc13   =>  pause-btn-not.in
+net pause-inverted <=  pause-btn-not.out  =>  pause-oneshot.in
+net pause-cmd      <=  pause-oneshot.out  =>  halui.program.pause
 
 # Tool change loopback (unlinked in postgui for manual tool change)
 net tool-prep-loop    iocontrol.0.tool-prepare   iocontrol.0.tool-prepared
@@ -151,7 +164,7 @@ net input-0-pe4  <=  remora.input.00
 # INPUT_1 - PE_6
 net input-1-pe6  <=  remora.input.01
 
-# INPUT_2 - PC_13
+# INPUT_2 - PC_13 - PAUSE button (NC: HIGH=idle, LOW=pressed)
 net input-2-pc13  <=  remora.input.02
 
 # INPUT_3 - PC_0
