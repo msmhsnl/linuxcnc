@@ -187,6 +187,7 @@ class HandlerClass:
 
     def initialized__(self):
         self.init_pins()
+        self._mpg_axis_next_prev = self.h['mpg-axis-next']
         self.init_preferences()
         self.init_widgets()
         self.init_probe()
