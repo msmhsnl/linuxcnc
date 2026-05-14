@@ -6,7 +6,7 @@ loadrt [EMCMOT]EMCMOT base_period_nsec=[EMCMOT]BASE_PERIOD servo_period_nsec=[EM
 loadrt remora-spi
 loadrt PRUencoder names=encoder.0
 loadrt conv_float_s32 names=mpg-conv
-loadrt mux4 names=mpg-scale-mux
+loadrt scale names=mpg-div4
 loadrt estop_latch names=estop-latch
 loadrt not names=estop-btn-not,pause-btn-not,cycle-btn-not,pause-run-not
 loadrt oneshot names=pause-oneshot,cycle-oneshot
@@ -19,8 +19,8 @@ addf motion-controller           servo-thread
 addf remora.update-freq          servo-thread
 addf remora.write                servo-thread
 addf PRUencoder.capture-position servo-thread
+addf mpg-div4                    servo-thread
 addf mpg-conv                    servo-thread
-addf mpg-scale-mux               servo-thread
 addf estop-btn-not               servo-thread
 addf estop-latch                 servo-thread
 addf pause-btn-not               servo-thread
@@ -150,39 +150,28 @@ net spindle-index-enable       encoder.0.index-enable spindle.0.index-enable
 # ============================================================================
 # MPG HANDWHEEL JOGGING (remora.PV.4)
 # ============================================================================
-net mpg-raw-count  <=  remora.PV.4  =>  mpg-conv.in
+net mpg-raw-count  <=  remora.PV.4     =>  mpg-div4.in
+setp mpg-div4.gain 0.25
+net mpg-div4-out   <=  mpg-div4.out   =>  mpg-conv.in
 net mpg-counts     <=  mpg-conv.out
-
-setp mpg-scale-mux.in0 [MPG]SCALE_0
-setp mpg-scale-mux.in1 [MPG]SCALE_1
-setp mpg-scale-mux.in2 [MPG]SCALE_2
-setp mpg-scale-mux.in3 [MPG]SCALE_3
-
-net mpg-scale-sel0  =>  mpg-scale-mux.sel0
-net mpg-scale-sel1  =>  mpg-scale-mux.sel1
-net mpg-scale       <=  mpg-scale-mux.out
 
 # MPG Jog - counts and scale connected to all joints
 # jog-enable pins are connected in vertical_postgui.hal (qtdragon pins)
-net mpg-counts    =>  joint.0.jog-counts  axis.x.jog-counts
-net mpg-scale     =>  joint.0.jog-scale   axis.x.jog-scale
+net mpg-counts         =>  joint.0.jog-counts  axis.x.jog-counts
+net mpg-scale          =>  joint.0.jog-scale   axis.x.jog-scale
 setp joint.0.jog-vel-mode 0
 
-net mpg-counts    =>  joint.1.jog-counts  axis.y.jog-counts
-net mpg-scale     =>  joint.1.jog-scale   axis.y.jog-scale
+net mpg-counts         =>  joint.1.jog-counts  axis.y.jog-counts
+net mpg-scale          =>  joint.1.jog-scale   axis.y.jog-scale
 setp joint.1.jog-vel-mode 0
 
-net mpg-counts    =>  joint.2.jog-counts  axis.z.jog-counts
-net mpg-scale     =>  joint.2.jog-scale   axis.z.jog-scale
+net mpg-counts         =>  joint.2.jog-counts  axis.z.jog-counts
+net mpg-scale          =>  joint.2.jog-scale   axis.z.jog-scale
 setp joint.2.jog-vel-mode 0
 
-net mpg-counts    =>  joint.3.jog-counts  axis.a.jog-counts
-net mpg-scale     =>  joint.3.jog-scale   axis.a.jog-scale
+net mpg-counts         =>  joint.3.jog-counts  axis.a.jog-counts
+net mpg-scale-angular  =>  joint.3.jog-scale   axis.a.jog-scale
 setp joint.3.jog-vel-mode 0
-
-# Default MPG scale selection (index 1 = 0.01 mm/click)
-sets mpg-scale-sel0 1
-sets mpg-scale-sel1 0
 
 # INPUTS
 

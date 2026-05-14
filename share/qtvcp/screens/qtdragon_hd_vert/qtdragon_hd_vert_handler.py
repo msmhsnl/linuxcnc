@@ -188,6 +188,10 @@ class HandlerClass:
     def initialized__(self):
         self.init_pins()
         self._mpg_axis_next_prev = self.h['mpg-axis-next']
+        STATUS.connect('jogincrement-changed', lambda _w, v, _t: self._update_mpg_scale(v))
+        STATUS.connect('jogincrement-angular-changed', lambda _w, v, _t: self._update_mpg_scale_angular(v))
+        self._update_mpg_scale(STATUS.get_jog_increment())
+        self._update_mpg_scale_angular(STATUS.get_jog_increment_angular())
         self.init_preferences()
         self.init_widgets()
         self.init_probe()
@@ -330,6 +334,10 @@ class HandlerClass:
 
         # MPG axis cycle button input (NC: normally HIGH, LOW when pressed)
         QHAL.newpin('mpg-axis-next', QHAL.HAL_BIT, QHAL.HAL_IN)
+
+        # MPG scale output pins — driven by jogincrements widgets
+        QHAL.newpin('mpg-scale', QHAL.HAL_FLOAT, QHAL.HAL_OUT)
+        QHAL.newpin('mpg-scale-angular', QHAL.HAL_FLOAT, QHAL.HAL_OUT)
 
     def init_preferences(self):
         if not self.w.PREFS_:
@@ -1387,6 +1395,12 @@ class HandlerClass:
             self.add_status("Copied file from {} to {}".format(self.source_file, self.destination_file))
         except Exception as e:
             self.add_status("Unable to copy file. %s" %e, WARNING)
+
+    def _update_mpg_scale(self, value):
+        self.h['mpg-scale'] = value if value != 0 else 0.01
+
+    def _update_mpg_scale_angular(self, value):
+        self.h['mpg-scale-angular'] = value if value != 0 else 1.0
 
     def _cycle_mpg_axis(self):
         # Axis cycle order follows INFO.AVAILABLE_AXES (same pattern as jog enable pins)
