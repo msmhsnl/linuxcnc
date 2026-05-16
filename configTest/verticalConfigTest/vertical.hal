@@ -6,7 +6,7 @@ loadrt [EMCMOT]EMCMOT base_period_nsec=[EMCMOT]BASE_PERIOD servo_period_nsec=[EM
 loadrt remora-spi
 loadrt PRUencoder names=encoder.0
 loadrt conv_float_s32 names=mpg-conv
-loadrt scale names=mpg-div4
+loadrt scale names=mpg-div4,spindle-rpm-pct
 loadrt estop_latch names=estop-latch
 loadrt not names=estop-btn-not,pause-btn-not,cycle-btn-not,pause-run-not
 loadrt oneshot names=pause-oneshot,cycle-oneshot
@@ -20,6 +20,7 @@ addf remora.update-freq          servo-thread
 addf remora.write                servo-thread
 addf PRUencoder.capture-position servo-thread
 addf mpg-div4                    servo-thread
+addf spindle-rpm-pct             servo-thread
 addf mpg-conv                    servo-thread
 addf estop-btn-not               servo-thread
 addf estop-latch                 servo-thread
@@ -131,7 +132,11 @@ net j3enable   <=  joint.3.amp-enable-out  =>  remora.joint.3.enable
 # ============================================================================
 # Spindle PWM: remora.SP.0
 # Forward: PE_14 -> remora.output.13  /  Reverse: PE_15 -> remora.output.14
-net spindle-speed-cmd  spindle.0.speed-out  =>  remora.SP.0
+# speed-out-abs: always positive RPM (direction handled by forward/reverse pins)
+# spindle-rpm-pct scales RPM → 0-100%: gain = 100 / MAX_SPINDLE_0_SPEED (100/20000 = 0.005)
+setp spindle-rpm-pct.gain [DISPLAY]SPINDLE_SPEED_GAIN
+net spindle-speed-abs  spindle.0.speed-out-abs  =>  spindle-rpm-pct.in
+net spindle-speed-cmd  spindle-rpm-pct.out      =>  remora.SP.0
 net spindle-forward    spindle.0.forward    =>  remora.output.13
 net spindle-reverse    spindle.0.reverse    =>  remora.output.14
 
