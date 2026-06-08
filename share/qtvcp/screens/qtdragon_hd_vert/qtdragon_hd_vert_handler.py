@@ -189,6 +189,11 @@ class HandlerClass:
         self.w.axis_select_x.setChecked(True)
         self.set_active_axis('X')
         STATUS.connect('state-on', lambda w: self._reapply_axis_select())
+        STATUS.connect('motion-mode-changed', lambda w, data: self._reapply_axis_select())
+        for _sig in ('motion-mode-changed',
+                     'state-on', 'state-off', 'state-estop', 'state-estop-reset',
+                     'interp-idle', 'interp-run', 'interp-paused'):
+            STATUS.connect(_sig, self._update_jog_buttons_enabled)
     # hide or initiate 4th/5th AXIS dro/jog
         flag = False
         flag4 = True
@@ -1188,6 +1193,11 @@ class HandlerClass:
             self.set_style_critical()
         self.w.statusbar.setText(message)
         STATUS.emit('update-machine-log', message, 'TIME')
+
+    def _update_jog_buttons_enabled(self, *args):
+        enabled = STATUS.is_man_mode() and STATUS.machine_is_on()
+        self.w.jog_plus_button.setEnabled(enabled)
+        self.w.jog_minus_button.setEnabled(enabled)
 
     def enable_auto(self, state):
         if state is True:
