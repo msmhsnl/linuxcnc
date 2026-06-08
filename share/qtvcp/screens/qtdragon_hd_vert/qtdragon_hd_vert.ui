@@ -525,40 +525,6 @@
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="btn_setup">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>80</width>
-                  <height>40</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>80</width>
-                  <height>40</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>SETUP</string>
-                </property>
-                <property name="checkable">
-                 <bool>true</bool>
-                </property>
-                <property name="index" stdset="0">
-                 <number>7</number>
-                </property>
-                <attribute name="buttonGroup">
-                 <string notr="true">page_buttonGroup</string>
-                </attribute>
-               </widget>
-              </item>
-              <item>
                <widget class="QPushButton" name="btn_settings">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -585,7 +551,7 @@
                  <bool>true</bool>
                 </property>
                 <property name="index" stdset="0">
-                 <number>8</number>
+                 <number>7</number>
                 </property>
                 <attribute name="buttonGroup">
                  <string notr="true">page_buttonGroup</string>
@@ -619,7 +585,7 @@
                  <bool>true</bool>
                 </property>
                 <property name="index" stdset="0">
-                 <number>9</number>
+                 <number>8</number>
                 </property>
                 <attribute name="buttonGroup">
                  <string notr="true">page_buttonGroup</string>
@@ -653,7 +619,7 @@
                  <bool>true</bool>
                 </property>
                 <property name="index" stdset="0">
-                 <number>10</number>
+                 <number>9</number>
                 </property>
                 <attribute name="buttonGroup">
                  <string notr="true">page_buttonGroup</string>
@@ -3168,114 +3134,6 @@ LOG</string>
                       <property name="frameShadow">
                        <enum>QFrame::Raised</enum>
                       </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </widget>
-                <widget class="QWidget" name="stackedWidget_mainTabPage8">
-                 <layout class="QHBoxLayout" name="horizontalLayout_41">
-                  <property name="spacing">
-                   <number>4</number>
-                  </property>
-                  <property name="leftMargin">
-                   <number>4</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>4</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>0</number>
-                  </property>
-                  <item>
-                   <layout class="QVBoxLayout" name="layout_setup">
-                    <property name="spacing">
-                     <number>4</number>
-                    </property>
-                    <item>
-                     <widget class="QTabWidget" name="tabWidget_setup">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="styleSheet">
-                       <string notr="true">QTabBar::tab{
- min-height:36px;
- min-width:80px;
-}</string>
-                      </property>
-                      <property name="currentIndex">
-                       <number>0</number>
-                      </property>
-                      <widget class="QWidget" name="tabHTML">
-                       <attribute name="title">
-                        <string>HTML</string>
-                       </attribute>
-                       <layout class="QVBoxLayout" name="layout_HTML">
-                        <property name="leftMargin">
-                         <number>0</number>
-                        </property>
-                        <property name="topMargin">
-                         <number>0</number>
-                        </property>
-                        <property name="rightMargin">
-                         <number>0</number>
-                        </property>
-                        <property name="bottomMargin">
-                         <number>0</number>
-                        </property>
-                       </layout>
-                      </widget>
-                      <widget class="QWidget" name="tabPDF">
-                       <attribute name="title">
-                        <string>PDF</string>
-                       </attribute>
-                       <layout class="QHBoxLayout" name="layout_PDF">
-                        <property name="leftMargin">
-                         <number>0</number>
-                        </property>
-                        <property name="topMargin">
-                         <number>0</number>
-                        </property>
-                        <property name="rightMargin">
-                         <number>0</number>
-                        </property>
-                        <property name="bottomMargin">
-                         <number>0</number>
-                        </property>
-                       </layout>
-                      </widget>
-                      <widget class="QWidget" name="tab_properties">
-                       <attribute name="title">
-                        <string>PROPERTIES</string>
-                       </attribute>
-                       <layout class="QVBoxLayout" name="layout_properties">
-                        <property name="spacing">
-                         <number>0</number>
-                        </property>
-                        <property name="leftMargin">
-                         <number>0</number>
-                        </property>
-                        <property name="topMargin">
-                         <number>0</number>
-                        </property>
-                        <property name="rightMargin">
-                         <number>0</number>
-                        </property>
-                        <property name="bottomMargin">
-                         <number>0</number>
-                        </property>
-                        <item>
-                         <widget class="QTextEdit" name="textedit_properties"/>
-                        </item>
-                       </layout>
-                      </widget>
                      </widget>
                     </item>
                    </layout>
