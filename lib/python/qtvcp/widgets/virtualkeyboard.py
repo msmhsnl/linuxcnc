@@ -94,6 +94,8 @@ class VirtualKeyboard(QtWidgets.QWidget):
         self.special_buttonGroup.buttonClicked.connect(self.special_clicked)
         self.control_buttonGroup.buttonClicked.connect(self.button_clicked)
 
+        self.caps_lock_clicked(self.btn_caplock.isChecked())
+
     def init_letters(self):
         for val in self.letter_list:
             self['btn_' + val].setText(val)

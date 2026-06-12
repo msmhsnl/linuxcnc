@@ -1475,6 +1475,9 @@ LOCK</string>
            <property name="checkable">
             <bool>true</bool>
            </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
           </widget>
          </item>
          <item row="6" column="9" colspan="2">
